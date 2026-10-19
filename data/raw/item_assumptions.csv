@@ -1,0 +1,9 @@
+item_id,item_name,category,use_rate,use_cv,lead_time_days,case_pack,unit_cost,service_level_target,safety_stock_days,assumption_version,source_status
+IVKIT,IV start kit,vascular access,0.42,0.2,3,24,3.8,0.97,3,v1.1-2026-10-19,manually_constructed_assumption
+GAUZE,Sterile gauze pack,wound care,1.15,0.18,2,100,0.34,0.96,2,v1.1-2026-10-19,manually_constructed_assumption
+GLOVEM,"Exam gloves, medium (pair)",PPE,3.6,0.15,3,200,0.18,0.98,4,v1.1-2026-10-19,manually_constructed_assumption
+SPECCUP,Specimen cup,laboratory,0.36,0.24,4,50,0.62,0.95,3,v1.1-2026-10-19,manually_constructed_assumption
+SALFLUSH,Saline flush 10 mL,vascular access,0.88,0.2,5,100,0.47,0.98,5,v1.1-2026-10-19,manually_constructed_assumption
+MASK,Procedure mask,PPE,0.74,0.22,3,50,0.21,0.96,3,v1.1-2026-10-19,manually_constructed_assumption
+UNDERPAD,Disposable underpad,patient care,0.52,0.25,4,50,0.71,0.95,3,v1.1-2026-10-19,manually_constructed_assumption
+BLOODTUBE,Blood collection tube,laboratory,1.32,0.18,3,100,0.29,0.97,3,v1.1-2026-10-19,manually_constructed_assumption

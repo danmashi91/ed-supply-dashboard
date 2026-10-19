@@ -1,0 +1,31 @@
+field_name,dataset,definition,data_type,provenance
+date,inventory_decision_daily.csv,Calendar date at daily grain,date,generated
+item_id,inventory_decision_daily.csv,Stable item identifier,string,manually constructed
+ed_arrivals,inventory_decision_daily.csv,Generated ED arrivals observed for the day,integer,generated
+forecast_arrivals_1d,inventory_decision_daily.csv,One-day-ahead arrival forecast using prior observations only,float,derived
+forecast_arrivals_7d,inventory_decision_daily.csv,Sum of seven daily arrival forecasts,float,derived
+item_demand_requested,inventory_decision_daily.csv,Generated requested units for item and day,integer,generated
+item_issued_qty,inventory_decision_daily.csv,Units fulfilled from available inventory,integer,derived
+backorder_qty,inventory_decision_daily.csv,Unfilled units carried after daily issue,integer,derived
+opening_on_hand,inventory_decision_daily.csv,Usable units at start of day,integer,derived
+receipts_qty,inventory_decision_daily.csv,Units received on the day,integer,generated/derived
+closing_on_hand,inventory_decision_daily.csv,Opening plus receipts minus issued units,integer,derived
+open_order_qty,inventory_decision_daily.csv,Units scheduled for future receipt,integer,derived
+inventory_position,inventory_decision_daily.csv,Closing stock plus open orders minus backorders,integer,derived
+forecast_item_demand_7d,inventory_decision_daily.csv,Seven-day arrivals forecast times item use rate,float,derived
+days_of_supply,inventory_decision_daily.csv,Inventory position divided by forecast average daily item demand,float,derived
+stockout_risk_proxy,inventory_decision_daily.csv,Logistic shortage-risk proxy for the protection period,float,derived
+recommended_order_qty,inventory_decision_daily.csv,Target-stock gap rounded to a full case pack,integer,derived
+recommended_action,inventory_decision_daily.csv,"Escalate, order, or monitor rule output",string,derived
+order_placed_qty,inventory_decision_daily.csv,"Units actually ordered that day (review days, or any day risk >= 0.50)",integer,derived
+supplier_event,inventory_decision_daily.csv,"none, delayed, short_shipped, or both for receipts due that day",string,generated
+lead_time_days,inventory_decision_daily.csv,Assumed supplier lead time,integer,manually constructed assumption
+case_pack,inventory_decision_daily.csv,Assumed order pack multiple,integer,manually constructed assumption
+unit_cost,inventory_decision_daily.csv,Illustrative cost per unit,float,manually constructed assumption
+estimated_order_cost,inventory_decision_daily.csv,Recommended quantity times unit cost,float,derived
+use_rate_per_arrival,inventory_decision_daily.csv,Assumed expected units used per ED arrival,float,manually constructed assumption
+service_level_target,inventory_decision_daily.csv,Assumed target item availability,float,manually constructed assumption
+assumption_version,all final files,Version label for active prototype assumptions,string,manually constructed
+record_status,inventory_decision_daily.csv,Provenance label for the row,string,derived
+scenario,scenario_comparison.csv,"Low, base, or high demand case",string,manually constructed
+demand_multiplier,scenario_comparison.csv,Scenario multiplier applied to forecast demand,float,manually constructed assumption

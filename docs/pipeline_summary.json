@@ -1,0 +1,16 @@
+{
+  "random_seed": 20261009,
+  "coverage_start": "2024-01-01",
+  "coverage_end": "2025-12-31",
+  "arrival_rows": 731,
+  "item_master_rows": 8,
+  "final_item_day_rows": 5848,
+  "final_item_day_columns": 28,
+  "scenario_rows": 17544,
+  "scenario_columns": 10,
+  "validation_checks": 13,
+  "validation_passed": 13,
+  "arrival_forecast_wape": 0.0935,
+  "fill_rate_proxy": 0.9988,
+  "high_risk_item_days": 223
+}
