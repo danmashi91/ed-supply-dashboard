@@ -1,0 +1,138 @@
+{
+  "version": "v2.0-week10-2026-10-24",
+  "random_state": 20261024,
+  "training_period": [
+    "2024-01-01",
+    "2024-12-31"
+  ],
+  "test_period": [
+    "2025-01-01",
+    "2025-12-24"
+  ],
+  "split_method": "chronological; 2024 training and 2025 testing",
+  "demand": {
+    "kpi": "Predicted units requested during the next seven days",
+    "algorithm": "GradientBoostingRegressor",
+    "features": [
+      "ed_arrivals",
+      "forecast_arrivals_1d",
+      "forecast_arrivals_7d",
+      "demand_lag1",
+      "demand_roll7",
+      "use_rate_per_arrival",
+      "day_of_week_num",
+      "month",
+      "weekend_flag",
+      "holiday_flag",
+      "surge_flag",
+      "item_id"
+    ],
+    "numeric_features": [
+      "ed_arrivals",
+      "forecast_arrivals_1d",
+      "forecast_arrivals_7d",
+      "demand_lag1",
+      "demand_roll7",
+      "use_rate_per_arrival",
+      "day_of_week_num",
+      "month",
+      "weekend_flag",
+      "holiday_flag",
+      "surge_flag"
+    ],
+    "categorical_features": [
+      "item_id"
+    ],
+    "metrics": {
+      "mae_units": 58.671,
+      "rmse_units": 95.369,
+      "wape": 0.0385,
+      "r2": 0.995
+    },
+    "reference_values": {
+      "ed_arrivals": 190,
+      "forecast_arrivals_1d": 192.4,
+      "forecast_arrivals_7d": 1377.25,
+      "demand_lag1": 153,
+      "demand_roll7": 155.57142857142858,
+      "use_rate_per_arrival": 0.81,
+      "day_of_week_num": 3,
+      "month": 7,
+      "weekend_flag": 0,
+      "holiday_flag": 0,
+      "surge_flag": 0,
+      "item_id": "BLOODTUBE"
+    }
+  },
+  "shortage": {
+    "kpi": "Probability of any backorder during the next seven days",
+    "algorithm": "Class-weighted LogisticRegression",
+    "features": [
+      "forecast_arrivals_7d",
+      "demand_lag1",
+      "demand_roll7",
+      "inventory_position",
+      "closing_on_hand",
+      "open_order_qty",
+      "backorder_qty",
+      "days_of_supply",
+      "lead_time_days",
+      "use_rate_per_arrival",
+      "service_level_target",
+      "surge_flag",
+      "item_id",
+      "supplier_event"
+    ],
+    "numeric_features": [
+      "forecast_arrivals_7d",
+      "demand_lag1",
+      "demand_roll7",
+      "inventory_position",
+      "closing_on_hand",
+      "open_order_qty",
+      "backorder_qty",
+      "days_of_supply",
+      "lead_time_days",
+      "use_rate_per_arrival",
+      "service_level_target",
+      "surge_flag"
+    ],
+    "categorical_features": [
+      "item_id",
+      "supplier_event"
+    ],
+    "metrics": {
+      "positive_cases": 24,
+      "test_rows": 2864,
+      "precision": 0.0425,
+      "recall": 0.7083,
+      "f1": 0.0802,
+      "roc_auc": 0.8712,
+      "brier_score": 0.117
+    },
+    "reference_values": {
+      "forecast_arrivals_7d": 1377.25,
+      "demand_lag1": 153,
+      "demand_roll7": 155.57142857142858,
+      "inventory_position": 1217.5,
+      "closing_on_hand": 865.5,
+      "open_order_qty": 350,
+      "backorder_qty": 0,
+      "days_of_supply": 8.45,
+      "lead_time_days": 3,
+      "use_rate_per_arrival": 0.81,
+      "service_level_target": 0.965,
+      "surge_flag": 0,
+      "item_id": "BLOODTUBE",
+      "supplier_event": "none"
+    },
+    "decision_threshold": 0.5
+  },
+  "interpretation_method": "Overall importance uses test-set permutation importance. Individual contributions use model-agnostic one-feature-at-a-time reference replacement; contributions are predictive, approximate, may not sum exactly because of interactions, and are not causal effects.",
+  "limitations": [
+    "All observations and outcomes are synthetic.",
+    "Only eight consumables from one simulated emergency department are represented.",
+    "The shortage outcome is rare, so probability estimates require calibration with real data.",
+    "Scenario changes are model-based comparisons, not guaranteed intervention effects."
+  ]
+}

@@ -1,5 +1,5 @@
 """
-ED Supply Decision Support — Version 1 (Descriptive Dashboard)
+ED Supply Decision Support — Version 2 (Week 10 Predictive Dashboard)
 
 Streamlit multipage app built from docs/app_specification.md
 (data version v1.1-2026-10-19).
@@ -23,6 +23,8 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
+import joblib
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
@@ -32,6 +34,7 @@ import streamlit as st
 # ---------------------------------------------------------------------------
 APP_ROOT = Path(__file__).resolve().parent          # app_build/ (next to data/)
 DATA_DIR = APP_ROOT / "data"
+MODEL_DIR = APP_ROOT / "models"
 
 PATHS = {
     "arrivals": DATA_DIR / "raw" / "generated_ed_arrivals.csv",
@@ -41,16 +44,37 @@ PATHS = {
     "validation": DATA_DIR / "final" / "validation_results.csv",
 }
 
+MODEL_PATHS = {
+    "demand": MODEL_DIR / "demand_model.joblib",
+    "shortage": MODEL_DIR / "shortage_model.joblib",
+    "metadata": MODEL_DIR / "model_metadata.json",
+    "model_data": DATA_DIR / "modeling" / "model_dataset.csv",
+    "importance": DATA_DIR / "modeling" / "global_importance.csv",
+}
+
 ASSUMPTION_VERSION = "v1.1-2026-10-19"
 FOOTER_TEXT = (
     "Prototype using synthetic data and illustrative assumptions "
     f"(assumption version {ASSUMPTION_VERSION}). Not for real ordering or "
-    "clinical decisions. The risk score is a ranking proxy, not a probability."
+    "clinical decisions. The descriptive risk score is a ranking proxy; the Week 10 "
+    "shortage output is a model estimate, not a guaranteed outcome."
 )
 WEEKDAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 SCENARIO_ORDER = ["low", "base", "high"]
 
 st.set_page_config(page_title="ED Supply Decision Support", page_icon="🩺", layout="wide")
+
+DEMAND_FEATURES = [
+    "ed_arrivals", "forecast_arrivals_1d", "forecast_arrivals_7d", "demand_lag1",
+    "demand_roll7", "use_rate_per_arrival", "day_of_week_num", "month",
+    "weekend_flag", "holiday_flag", "surge_flag", "item_id",
+]
+SHORTAGE_FEATURES = [
+    "forecast_arrivals_7d", "demand_lag1", "demand_roll7", "inventory_position",
+    "closing_on_hand", "open_order_qty", "backorder_qty", "days_of_supply",
+    "lead_time_days", "use_rate_per_arrival", "service_level_target", "surge_flag",
+    "item_id", "supplier_event",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -90,6 +114,22 @@ ITEMS = data["items"]
 DAILY = data["daily"]
 SCENARIO = data["scenario"]
 VALIDATION = data["validation"]
+
+
+@st.cache_resource(show_spinner="Loading predictive models…")
+def load_models() -> tuple[object, object, dict, pd.DataFrame, pd.DataFrame]:
+    """Load the two trained models and their transparent supporting outputs."""
+    import json
+
+    missing = [str(p.relative_to(APP_ROOT)) for p in MODEL_PATHS.values() if not p.exists()]
+    if missing:
+        raise FileNotFoundError("Missing Week 10 model files: " + ", ".join(missing))
+    demand_model = joblib.load(MODEL_PATHS["demand"])
+    shortage_model = joblib.load(MODEL_PATHS["shortage"])
+    metadata = json.loads(MODEL_PATHS["metadata"].read_text(encoding="utf-8"))
+    model_data = pd.read_csv(MODEL_PATHS["model_data"], parse_dates=["date"])
+    importance = pd.read_csv(MODEL_PATHS["importance"])
+    return demand_model, shortage_model, metadata, model_data, importance
 
 # Lookups for display names (always show item_name, not the code).
 ITEM_NAME = dict(zip(ITEMS["item_id"], ITEMS["item_name"]))
@@ -206,6 +246,90 @@ def stop_with(message: str) -> None:
 def readable(col: str) -> str:
     """snake_case column name -> readable header."""
     return col.replace("_", " ").capitalize()
+
+
+PREDICTOR_LABELS = {
+    "ed_arrivals": "Current ED arrivals",
+    "forecast_arrivals_1d": "One-day arrival forecast",
+    "forecast_arrivals_7d": "Seven-day arrival forecast",
+    "demand_lag1": "Previous-day item demand",
+    "demand_roll7": "Trailing seven-day average demand",
+    "use_rate_per_arrival": "Units used per arrival",
+    "day_of_week_num": "Day of week",
+    "month": "Month",
+    "weekend_flag": "Weekend indicator",
+    "holiday_flag": "Holiday indicator",
+    "surge_flag": "Demand-surge indicator",
+    "item_id": "Item",
+    "inventory_position": "Inventory position",
+    "closing_on_hand": "Closing stock",
+    "open_order_qty": "Open-order quantity",
+    "backorder_qty": "Current backorder quantity",
+    "days_of_supply": "Days of supply",
+    "lead_time_days": "Supplier lead time",
+    "service_level_target": "Service-level target",
+    "supplier_event": "Supplier event",
+}
+
+
+def model_prediction(model: object, row: pd.DataFrame, probability: bool) -> float:
+    """Return one nonnegative regression prediction or class-1 probability."""
+    if probability:
+        return float(model.predict_proba(row)[:, 1][0])
+    return max(0.0, float(model.predict(row)[0]))
+
+
+def reference_replacement_contributions(
+    model: object,
+    row: pd.DataFrame,
+    features: list[str],
+    reference: dict,
+    probability: bool,
+) -> pd.DataFrame:
+    """Approximate local contributions through one-feature reference replacement.
+
+    For each predictor, compare the full prediction with a prediction where that
+    predictor alone is replaced by its training reference. The values explain
+    model sensitivity for this record and are not causal effects. Interactions
+    mean the contributions need not add exactly to the prediction difference.
+    """
+    full = model_prediction(model, row[features], probability)
+    records = []
+    for feature in features:
+        altered = row[features].copy()
+        # Replace the whole one-row column so pandas can adopt the reference
+        # value's dtype (for example, a decimal median for an integer column).
+        altered[feature] = reference[feature]
+        without = model_prediction(model, altered, probability)
+        records.append({
+            "predictor": feature,
+            "Predictor": PREDICTOR_LABELS.get(feature, readable(feature)),
+            "contribution": full - without,
+        })
+    return pd.DataFrame(records).sort_values("contribution", key=lambda s: s.abs(), ascending=False)
+
+
+def contribution_sentence(contrib: pd.DataFrame, probability: bool) -> str:
+    """Create a compact contextual description of the strongest contributions."""
+    positive = contrib[contrib["contribution"] > 0].head(2)
+    negative = contrib[contrib["contribution"] < 0].head(2)
+    unit = "percentage points" if probability else "units"
+    parts = []
+    if not positive.empty:
+        text = ", ".join(
+            f"{r.Predictor} (+{r.contribution * 100:.1f} {unit})" if probability
+            else f"{r.Predictor} (+{r.contribution:,.1f} {unit})"
+            for r in positive.itertuples()
+        )
+        parts.append(f"The strongest upward model contributions are {text}.")
+    if not negative.empty:
+        text = ", ".join(
+            f"{r.Predictor} ({r.contribution * 100:.1f} {unit})" if probability
+            else f"{r.Predictor} ({r.contribution:,.1f} {unit})"
+            for r in negative.itertuples()
+        )
+        parts.append(f"The strongest downward model contributions are {text}.")
+    return " ".join(parts) or "No single predictor has a material contribution for this prediction."
 
 
 # ---------------------------------------------------------------------------
@@ -657,7 +781,255 @@ def page_scenarios() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Page 5 — Data & Assumptions
+# Page 5 — Predictive Models & What-If Analysis (Week 10)
+# ---------------------------------------------------------------------------
+def page_predictive_models() -> None:
+    st.title("Predictive Models & What-If Analysis")
+    st.caption("What does the model predict, why, and what changes under a user-defined scenario?")
+
+    try:
+        demand_model, shortage_model, metadata, model_data, importance = load_models()
+    except FileNotFoundError as exc:
+        st.error(str(exc))
+        st.code("python code/train_predictive_models.py")
+        footer()
+        st.stop()
+
+    st.info(
+        "The two models use synthetic observations. Overall importance describes model performance "
+        "across the 2025 test data. Individual contributions explain one prediction. Neither is "
+        "evidence that a predictor causes the outcome.",
+        icon="ℹ️",
+    )
+
+    model_choice = st.radio(
+        "KPI model",
+        ["Seven-day item demand", "Seven-day shortage probability"],
+        horizontal=True,
+    )
+    probability = model_choice == "Seven-day shortage probability"
+    key = "shortage" if probability else "demand"
+    model = shortage_model if probability else demand_model
+    features = SHORTAGE_FEATURES if probability else DEMAND_FEATURES
+    details = metadata[key]
+
+    eligible = model_data[model_data["item_id"].isin(selected_items)].copy()
+    eligible = eligible[(eligible["date"].dt.date >= START) & (eligible["date"].dt.date <= END)]
+    if eligible.empty:
+        stop_with("No model rows match the current filters.")
+
+    left, right = st.columns(2)
+    with left:
+        model_item = st.selectbox(
+            "Baseline item", sorted(eligible["item_id"].unique()),
+            format_func=lambda i: ITEM_NAME.get(i, i), key=f"model_item_{key}",
+        )
+    item_rows = eligible[eligible["item_id"] == model_item]
+    valid_dates = sorted(item_rows["date"].dt.date.unique())
+    with right:
+        model_date = st.selectbox("Baseline date", valid_dates, index=len(valid_dates) - 1,
+                                  key=f"model_date_{key}")
+    baseline_row = item_rows[item_rows["date"].dt.date == model_date].tail(1)
+    baseline_prediction = model_prediction(model, baseline_row[features], probability)
+
+    st.subheader("KPI definition and model validation")
+    if probability:
+        st.markdown(
+            "**KPI:** estimated probability of any backorder during the next seven days. "
+            "The ED inventory manager uses it to prioritize items for ordering or escalation. "
+            "The class-weighted logistic regression was selected because it produces an understandable "
+            "probability and supports transparent contribution analysis."
+        )
+        met = details["metrics"]
+        cols = st.columns(5)
+        cols[0].metric("ROC-AUC", f"{met['roc_auc']:.3f}")
+        cols[1].metric("Recall", f"{met['recall']:.1%}")
+        cols[2].metric("Precision", f"{met['precision']:.1%}")
+        cols[3].metric("F1", f"{met['f1']:.3f}")
+        cols[4].metric("Positive test cases", f"{met['positive_cases']}/{met['test_rows']}")
+        st.warning(
+            "Backorders are rare in the synthetic test period. The model ranks risk reasonably well, "
+            "but its low precision means many alerts can be false positives. Use it for screening, "
+            "not automatic ordering."
+        )
+    else:
+        st.markdown(
+            "**KPI:** predicted units requested for the selected item during the next seven days. "
+            "The ED inventory manager uses it to plan replenishment and reduce emergency purchasing or "
+            "excess stock. Gradient boosting was selected to capture nonlinear demand, seasonal, item, "
+            "and surge relationships."
+        )
+        met = details["metrics"]
+        cols = st.columns(4)
+        cols[0].metric("Test WAPE", f"{met['wape']:.2%}")
+        cols[1].metric("MAE", f"{met['mae_units']:,.1f} units")
+        cols[2].metric("RMSE", f"{met['rmse_units']:,.1f} units")
+        cols[3].metric("R²", f"{met['r2']:.3f}")
+
+    st.caption(
+        f"Algorithm: {details['algorithm']}. Training: {metadata['training_period'][0]} to "
+        f"{metadata['training_period'][1]}. Test: {metadata['test_period'][0]} to "
+        f"{metadata['test_period'][1]}. Split: chronological."
+    )
+
+    st.subheader("Overall predictor importance")
+    model_name = "Seven-day shortage" if probability else "Seven-day demand"
+    imp = importance[importance["model"] == model_name].nlargest(10, "importance").copy()
+    imp["Predictor"] = imp["predictor"].map(lambda c: PREDICTOR_LABELS.get(c, readable(c)))
+    fig_imp = px.bar(
+        imp.sort_values("importance"), x="importance", y="Predictor", orientation="h",
+        labels={"importance": "Decrease in test performance when predictor is shuffled", "Predictor": ""},
+    )
+    fig_imp.update_layout(height=390, margin=dict(t=10, b=10))
+    st.plotly_chart(fig_imp, width="stretch")
+    st.caption(
+        "Overall importance uses permutation importance on the 2025 holdout data. It measures how much "
+        "test performance decreases when one predictor is shuffled. It does not establish causation."
+    )
+
+    baseline_label = f"{baseline_prediction:.1%}" if probability else f"{baseline_prediction:,.1f} units"
+    st.subheader("What-if scenario")
+    st.metric("Baseline model prediction", baseline_label)
+    st.caption(
+        f"Baseline = the stored predictor values for {ITEM_NAME.get(model_item, model_item)} on "
+        f"{model_date:%Y-%m-%d}. Change any permitted input below and run the scenario."
+    )
+
+    updated = baseline_row[features].copy()
+    with st.form(f"what_if_{key}"):
+        if probability:
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                updated.loc[updated.index[0], "forecast_arrivals_7d"] = st.number_input(
+                    "Seven-day arrival forecast", min_value=0.0,
+                    value=float(baseline_row["forecast_arrivals_7d"].iloc[0]), step=10.0)
+                updated.loc[updated.index[0], "inventory_position"] = st.number_input(
+                    "Inventory position", min_value=-10000,
+                    value=int(baseline_row["inventory_position"].iloc[0]), step=10)
+                updated.loc[updated.index[0], "closing_on_hand"] = st.number_input(
+                    "Closing stock", min_value=0, value=int(baseline_row["closing_on_hand"].iloc[0]), step=10)
+            with c2:
+                updated.loc[updated.index[0], "open_order_qty"] = st.number_input(
+                    "Open-order quantity", min_value=0,
+                    value=int(baseline_row["open_order_qty"].iloc[0]), step=10)
+                updated.loc[updated.index[0], "days_of_supply"] = st.number_input(
+                    "Days of supply", min_value=0.0,
+                    value=float(baseline_row["days_of_supply"].iloc[0]), step=0.25)
+                updated.loc[updated.index[0], "lead_time_days"] = st.number_input(
+                    "Supplier lead time (days)", min_value=1,
+                    value=int(baseline_row["lead_time_days"].iloc[0]), step=1)
+            with c3:
+                updated.loc[updated.index[0], "surge_flag"] = int(st.checkbox(
+                    "Demand surge", value=bool(baseline_row["surge_flag"].iloc[0])))
+                events = ["none", "delayed", "short_shipped", "delayed+short_shipped"]
+                current_event = str(baseline_row["supplier_event"].iloc[0])
+                updated.loc[updated.index[0], "supplier_event"] = st.selectbox(
+                    "Supplier event", events, index=events.index(current_event) if current_event in events else 0)
+        else:
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                updated.loc[updated.index[0], "ed_arrivals"] = st.number_input(
+                    "Current ED arrivals", min_value=0,
+                    value=int(baseline_row["ed_arrivals"].iloc[0]), step=5)
+                updated.loc[updated.index[0], "forecast_arrivals_1d"] = st.number_input(
+                    "One-day arrival forecast", min_value=0.0,
+                    value=float(baseline_row["forecast_arrivals_1d"].iloc[0]), step=5.0)
+            with c2:
+                updated.loc[updated.index[0], "forecast_arrivals_7d"] = st.number_input(
+                    "Seven-day arrival forecast", min_value=0.0,
+                    value=float(baseline_row["forecast_arrivals_7d"].iloc[0]), step=10.0)
+                updated.loc[updated.index[0], "demand_lag1"] = st.number_input(
+                    "Previous-day item demand", min_value=0.0,
+                    value=float(baseline_row["demand_lag1"].iloc[0]), step=5.0)
+            with c3:
+                updated.loc[updated.index[0], "demand_roll7"] = st.number_input(
+                    "Trailing seven-day average demand", min_value=0.0,
+                    value=float(baseline_row["demand_roll7"].iloc[0]), step=5.0)
+                updated.loc[updated.index[0], "surge_flag"] = int(st.checkbox(
+                    "Demand surge", value=bool(baseline_row["surge_flag"].iloc[0])))
+        run = st.form_submit_button("Run model-based scenario", type="primary")
+
+    if not run:
+        st.caption("Run the scenario to generate the updated prediction, contribution chart, and summary.")
+        return
+
+    updated_prediction = model_prediction(model, updated[features], probability)
+    delta = updated_prediction - baseline_prediction
+    a, b, c = st.columns(3)
+    if probability:
+        a.metric("Baseline", f"{baseline_prediction:.1%}")
+        b.metric("Updated", f"{updated_prediction:.1%}")
+        c.metric("Change", f"{delta * 100:+.1f} percentage points")
+    else:
+        a.metric("Baseline", f"{baseline_prediction:,.1f} units")
+        b.metric("Updated", f"{updated_prediction:,.1f} units")
+        c.metric("Change", f"{delta:+,.1f} units")
+
+    contrib = reference_replacement_contributions(
+        model, updated, features, details["reference_values"], probability,
+    ).head(10)
+    chart = contrib.sort_values("contribution").copy()
+    chart["Display contribution"] = chart["contribution"] * (100 if probability else 1)
+    chart["Direction"] = np.where(chart["contribution"] >= 0, "Increases prediction", "Decreases prediction")
+    fig_local = px.bar(
+        chart, x="Display contribution", y="Predictor", orientation="h", color="Direction",
+        color_discrete_map={"Increases prediction": "#E45756", "Decreases prediction": "#54A24B"},
+        labels={
+            "Display contribution": "Approximate contribution (percentage points)" if probability
+            else "Approximate contribution (units)",
+            "Predictor": "",
+        },
+    )
+    fig_local.update_layout(height=430, margin=dict(t=10, b=10), legend=dict(orientation="h", y=1.08))
+    st.subheader("Contributions to this prediction")
+    st.plotly_chart(fig_local, width="stretch")
+    st.caption(
+        "Individual contributions use one-feature-at-a-time replacement with the training reference. "
+        "They show model sensitivity for this prediction, are approximate, may not sum exactly because "
+        "of interactions, and must not be interpreted as causal effects."
+    )
+
+    changed = []
+    for feature in features:
+        before = baseline_row[feature].iloc[0]
+        after = updated[feature].iloc[0]
+        if str(before) != str(after):
+            changed.append(f"{PREDICTOR_LABELS.get(feature, readable(feature))}: {before} to {after}")
+    input_text = "; ".join(changed) if changed else "No inputs were changed from the baseline"
+    if probability:
+        implication = (
+            "The updated estimate is above the 50% model-screening threshold, so the manager should "
+            "review the item and source data before deciding whether to order or escalate."
+            if updated_prediction >= 0.50 else
+            "The updated estimate is below the 50% model-screening threshold, but the manager should "
+            "still review inventory coverage and supplier information."
+        )
+        result_text = (
+            f"The estimated seven-day shortage probability changed from {baseline_prediction:.1%} "
+            f"to {updated_prediction:.1%}, a change of {delta * 100:+.1f} percentage points."
+        )
+    else:
+        implication = (
+            "The updated demand estimate can inform replenishment review, but the final order should "
+            "also consider current inventory, open orders, lead time, case packs, and manager judgment."
+        )
+        result_text = (
+            f"Predicted seven-day item demand changed from {baseline_prediction:,.1f} to "
+            f"{updated_prediction:,.1f} units, a change of {delta:+,.1f} units."
+        )
+    st.subheader("Automatically generated scenario summary")
+    st.success(
+        f"**Scenario inputs.** {input_text}.\n\n"
+        f"**Model result.** {result_text}\n\n"
+        f"**Interpretation.** {contribution_sentence(contrib, probability)} {implication}\n\n"
+        "**Limitations.** This is a model-based scenario using synthetic data. Input changes are not "
+        "guaranteed to cause the predicted result, and the output must not be treated as an automatic "
+        "purchasing or clinical decision."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Page 6 — Data & Assumptions
 # ---------------------------------------------------------------------------
 def page_data() -> None:
     st.title("Data & Assumptions")
@@ -702,8 +1074,11 @@ not taken from real hospital records. Item assumptions are manually constructed 
 - Supplier disruptions: each order has an 8% chance of arriving 2–6 days late and a 5% chance of
   being short-shipped (30–70% of the units ordered).
 
-**Limitations.** {FOOTER_TEXT} Forecast columns are shown as stored; Version 1 does not train or run
-any forecasting model.
+**Predictive extension.** Version 2 trains a seven-day demand model and a seven-day shortage model.
+The models are evaluated on a chronological 2025 holdout period and are intended for demonstration
+and decision screening only.
+
+**Limitations.** {FOOTER_TEXT}
 """
     )
 
@@ -732,6 +1107,7 @@ pages = [
     st.Page(page_item_explorer, title="Item Explorer", icon="🔍", url_path="item-explorer"),
     st.Page(page_trends, title="Trends & Mix", icon="📈", url_path="trends"),
     st.Page(page_scenarios, title="Scenario Comparison", icon="⚖️", url_path="scenarios"),
+    st.Page(page_predictive_models, title="Predictive Models", icon="🤖", url_path="predictive-models"),
     st.Page(page_data, title="Data & Assumptions", icon="🗂️", url_path="data"),
 ]
 st.navigation(pages).run()
