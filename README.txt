@@ -1,27 +1,36 @@
-APP BUILD FOLDER (data v1.1-2026-10-19)
-=======================================
+ED SUPPLY DECISION SUPPORT — WEEK 10
+====================================
 
-This folder is separate from the graded Week 7 submission. Nothing in the
-parent folder was changed.
+Team: Monica Hall and Abubakar Sani
+Data: synthetic ED arrivals and inventory, 2024-01-01 to 2025-12-31
 
-What is here
-- code/generate_and_validate.py  Updated generator (v1.1). Run: python3 code/generate_and_validate.py
-- data/                          Regenerated datasets (same file names and layout as Week 7)
-- docs/app_specification.md      Spec to paste into a new AI chat to generate the Streamlit app
-- docs/data_dictionary.csv, docs/pipeline_summary.json
+Reproduce and run
+-----------------
+1. pip install -r requirements.txt
+2. python code/generate_and_validate.py   (optional: recreates source data)
+3. python code/train_predictive_models.py
+4. streamlit run app.py
 
-What changed from Week 7 (v1.0) and why
-The v1.0 data had only 8 high-risk item-days, all on 2024-01-01 (a lean-start
-artifact), so a dashboard would have nothing to show. v1.1 adds:
-1. Arrival surges: 6 multi-day episodes (+18-38%) and 8 one-day spikes (+45-70%). New column surge_flag.
-2. Twice-weekly ordering (Mon/Thu, or any day risk >= 0.50). Order-up-to target
-   covers lead time + safety stock + 4-day review period. New column order_placed_qty.
-3. Supplier disruptions: 8% of orders arrive 2-6 days late; 5% are short-shipped
-   (30-70% of units). New column supplier_event.
-4. Starting stock = target stock.
+Predictive extension
+--------------------
+- KPI 1: predicted item demand during the next seven days, modeled with a
+  gradient boosting regressor and compared with a no-model benchmark
+  (arrival forecast x units per arrival).
+- KPI 2: probability of any backorder during the next seven days, modeled
+  with class-weighted logistic regression plus probability calibration.
+- Models are chosen on 2024 data only and tested once on 2025.
+- Overall importance: permutation importance on the chronological 2025
+  holdout set.
+- Individual contributions: one-feature-at-a-time reference replacement;
+  predictive, approximate, and explicitly non-causal.
+- What-if inputs compare the updated result with a clearly labeled baseline
+  and automatically generate a scenario summary.
 
-Result: 223 high-risk item-days spread over all items and months, 19 backorder
-days, fill rate 99.88%, 13/13 validation checks pass.
+Important limitation
+--------------------
+The data and outcomes are synthetic. The shortage model has low precision
+because positive cases are rare, and the demand model does not beat the
+simple arrival-based benchmark on this synthetic data. Use all predictions for demonstration and
+decision screening only, not automatic purchasing or clinical decisions.
 
-Next step: paste docs/app_specification.md into a new chat and ask it to
-build the app; save the generated app.py here, then: streamlit run app.py
+See README.md and docs/week10_progress_report.md for complete details.

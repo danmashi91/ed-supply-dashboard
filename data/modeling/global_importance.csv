@@ -1,0 +1,21 @@
+model,predictor,importance,std
+Seven-day demand,use_rate_per_arrival,533.8588159052539,4.103412256624317
+Seven-day demand,demand_lag1,341.32372942139267,5.539089293192805
+Seven-day demand,demand_roll7,228.6472096470057,4.317569051390349
+Seven-day demand,month,30.244494154181556,1.1199446250773266
+Seven-day demand,forecast_arrivals_7d,3.169162203980103,0.22051216705485097
+Seven-day demand,surge_flag,0.25032139866615744,0.1707258469331261
+Seven-day demand,forecast_arrivals_1d,0.24923727391149875,0.0903506159315086
+Seven-day demand,ed_arrivals,0.13680770349047489,0.23915499536028437
+Seven-day demand,day_of_week_num,0.0,0.0
+Seven-day demand,weekend_flag,0.0,0.0
+Seven-day demand,holiday_flag,0.0,0.0
+Seven-day shortage,closing_on_hand,0.41549112382629105,0.05468006218524978
+Seven-day shortage,demand_roll7,0.13259793133802816,0.0194181309084003
+Seven-day shortage,demand_lag1,0.10064737382629106,0.04715840630875505
+Seven-day shortage,surge_flag,0.04595987382629112,0.005348148661066202
+Seven-day shortage,lead_time_days,0.034934345657277,0.013398755812240244
+Seven-day shortage,avg_arrivals_28d,0.026003154342722976,0.012088576320253347
+Seven-day shortage,forecast_arrivals_7d,0.01611282276995303,0.009643568473633948
+Seven-day shortage,supplier_event,0.005824530516431892,0.004597283475783701
+Seven-day shortage,days_of_supply,0.0004988262910798069,0.006121932148221182
