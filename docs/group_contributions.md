@@ -1,26 +1,28 @@
 # Group Member Contributions
 
-Review and revise this page together before submission so it reflects the work actually completed by each member.
-
 ## Abubakar Sani
 
 - Developed and deployed the initial Streamlit dashboard.
 - Implemented the descriptive pages, navigation, visualizations, filtering, and deployment structure.
 - Helped define the ED supply-management problem, simulated workflow, and initial KPI presentation.
-- Will review the predictive extension and participate in the final demonstration and submission.
+- Reviewed and tested the Week 10 predictive extension.
+- Improved the shortage model through probability calibration and revised predictors.
+- Added the demand benchmark, model-selection comparisons, and clearer model explanations.
+- Updated the application and supporting documentation after model review.
 
 ## Monica Hall
 
-- Reviewed the Week 10 rubric and translated it into predictive and presentation requirements.
-- Added or coordinated the two predictive KPI models: seven-day item demand and seven-day shortage probability.
-- Added model validation reporting, overall predictor importance, individual prediction contributions, what-if analysis, and automatic scenario summaries.
-- Updated the setup, specification, progress, limitation, and presentation documentation.
-- Will present the Week 10 predictive-model and what-if sections in the demonstration video and help finalize the submission.
+- Reviewed the Week 10 rubric and translated it into predictive, application, and presentation requirements.
+- Developed and coordinated the first predictive extension for seven-day item demand and seven-day shortage probability.
+- Added model-validation reporting, overall predictor importance, individual prediction contributions, and contextual interpretation.
+- Added baseline-versus-updated what-if analysis and automatically generated scenario summaries.
+- Updated the setup instructions, predictive specification, progress report, limitations, and presentation documentation.
+- Created and managed the Week 10 GitHub branch and pull request.
+- Verified the merged application and Predictive Models page on Streamlit.
 
-## Shared responsibilities
+## Shared Responsibilities
 
-- Confirm the final KPI interpretation and limitations.
-- Test the deployed application and repository access.
-- Record and edit the seven-minute demonstration.
-- Submit the final link and respond to instructor feedback.
-
+- Reviewed the final KPI definitions, model interpretation, and limitations.
+- Tested the final deployed application and repository access.
+- Prepared the seven-minute demonstration plan.
+- Will record and edit the demonstration video and submit the final repository link.
