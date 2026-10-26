@@ -13,7 +13,6 @@ Python 3.10 or later is required (on Streamlit Community Cloud, choose Python 3.
 ```bash
 pip install -r requirements.txt
 python code/train_predictive_models.py
-code/model_features.py
 streamlit run app.py
 ```
 
