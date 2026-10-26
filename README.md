@@ -2,17 +2,18 @@
 
 Streamlit application using two years (2024-01-01 through 2025-12-31) of **synthetic** emergency-department arrivals and supply data for eight routine consumables. It combines descriptive monitoring with two predictive models, transparent model explanations, and interactive what-if analysis.
 
-Data version: `v1.1-2026-10-19`. Model version: `v2.0-week10-2026-10-24`.
+Data version: `v1.1-2026-10-19`. Model version: `v2.1-week10-2026-10-25`.
 
 Team: Monica Hall and Abubakar Sani (MS Analytics, Saint Louis University).
 
 ## Reproduce and run
 
-Python 3.10 or later is required.
+Python 3.10 or later is required (on Streamlit Community Cloud, choose Python 3.11 or 3.12). scikit-learn is pinned to 1.7.2 so the saved models load correctly.
 
 ```bash
 pip install -r requirements.txt
 python code/train_predictive_models.py
+code/model_features.py
 streamlit run app.py
 ```
 
@@ -37,10 +38,10 @@ The app reads the generated CSV and model files without modifying them. The comm
 
 | KPI | Decision use | Algorithm | 2025 holdout result |
 |---|---|---|---|
-| Predicted item demand during the next seven days | Replenishment planning and avoidance of emergency purchases or excess stock | Gradient boosting regressor | WAPE 3.85%; MAE 58.7 units; RMSE 95.4; R² 0.995 |
-| Probability of any backorder during the next seven days | Prioritize items for review, ordering, or supplier escalation | Class-weighted logistic regression | ROC-AUC 0.871; recall 70.8%; precision 4.25%; F1 0.080; 24 positive test rows |
+| Predicted item demand during the next seven days | Replenishment planning and avoidance of emergency purchases or excess stock | Gradient boosting regressor | WAPE 3.84% (no-model benchmark 3.79%); MAE 58.6 units; RMSE 95.2; R² 0.995 |
+| Probability of any backorder during the next seven days | Prioritize items for review, ordering, or supplier escalation | Calibrated, class-weighted logistic regression | ROC-AUC 0.915; average precision 0.224; at the 7.3% screening threshold: 8.8% of item-days flagged, recall 75%, precision 7.1%; 24 positive test rows |
 
-Training uses 2024 rows and testing uses 2025 rows, preserving time order. Overall importance uses permutation importance on the holdout set. Individual contributions use one-feature-at-a-time replacement with a training reference value; they are approximate, may not sum because of interactions, and are not causal effects.
+Models are selected on 2024 data only (rolling folds for demand, Oct–Dec 2024 for shortage), refitted on all of 2024, and tested once on 2025. Overall importance uses permutation importance on the holdout set. Individual contributions use one-predictor-at-a-time replacement with a typical training value; they are approximate, may not sum because of interactions, and are not causal effects. Predictor definitions shared by training and the app are in `code/model_features.py`.
 
 ## Main files
 
@@ -49,6 +50,7 @@ app.py
 requirements.txt
 code/generate_and_validate.py
 code/train_predictive_models.py
+code/model_features.py
 data/raw/
 data/intermediate/
 data/final/
@@ -59,7 +61,7 @@ docs/
 
 ## Limitations
 
-All observations and outcomes are synthetic, cover only eight supplies, and represent one simulated emergency department. The demand model's strong accuracy partly reflects known simulation structure. Shortages are rare, so the shortage model's low precision can create many false alerts; it is a screening aid, not an automatic ordering rule. What-if results are model-based scenarios, not guaranteed intervention effects. This prototype is not for real purchasing or clinical decisions.
+All observations and outcomes are synthetic, cover only eight supplies, and represent one simulated emergency department. The demand model's strong accuracy reflects known simulation structure, and it does not beat a simple arrival-based formula. Shortages are rare, so the shortage model's low precision can create many false alerts; it is a screening aid, not an automatic ordering rule. What-if results are model-based scenarios, not guaranteed intervention effects. This prototype is not for real purchasing or clinical decisions.
 
 ## Week 10 supporting deliverables
 

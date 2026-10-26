@@ -10,7 +10,8 @@ The group has expanded the ED Supply Decision Support application from a descrip
 - Defined two forward-looking KPIs: predicted seven-day item demand and probability of a backorder during the next seven days.
 - Created reproducible seven-day target variables from item-day records.
 - Used a chronological split: 2024 for training and 2025 for testing.
-- Trained a gradient boosting demand model and class-weighted logistic shortage model.
+- Trained a gradient boosting demand model and a calibrated, class-weighted logistic shortage model.
+- Reviewed the first model versions and revised them: removed duplicate and collinear predictors, added probability calibration, compared candidates on 2024 validation data only, and added a no-model benchmark for demand.
 - Saved fitted models, model metadata, modeling data, and permutation-importance results.
 - Added a Predictive Models page with KPI explanations, test metrics, global importance, editable what-if inputs, baseline comparisons, local contributions, and automatic summaries.
 - Added non-causation language and limitations in the interface and documentation.
@@ -18,9 +19,9 @@ The group has expanded the ED Supply Decision Support application from a descrip
 
 ## Current model results
 
-The seven-day demand model achieved 3.85% WAPE, 58.671-unit MAE, 95.369-unit RMSE, and R² of 0.9950 on the chronological 2025 holdout. These results show that the model reproduces the patterns in the synthetic generator well.
+The seven-day demand model (gradient boosting) achieved 3.84% WAPE, 58.6-unit MAE, 95.2-unit RMSE, and R² of 0.995 on the chronological 2025 holdout. A no-model benchmark (seven-day arrival forecast × units used per arrival) scored 3.79%. The model therefore matches but does not beat the formula, which is expected because the synthetic generator creates demand from that formula. Overall importance shows that units per arrival and recent demand drive predictions; the arrival forecast adds little beyond recent demand, which already reflects current arrival levels.
 
-The seven-day shortage model achieved ROC-AUC 0.8712 and recall 0.7083, but precision was only 0.0425 and F1 was 0.0802. There were only 24 positive cases among 2,864 test observations. The shortage output is therefore presented as a screening estimate that requires manager review, not an automatic order trigger.
+The seven-day shortage model (calibrated logistic regression) achieved ROC-AUC 0.915 and average precision 0.224 (a random ranking would score about 0.008). At a screening threshold of 7.3%, chosen on 2024 validation data, it flags 8.8% of item-days and catches 75% of shortages, but precision is 7.1% because there were only 24 positive cases among 2,864 test observations. Compared with the first version, it flags fewer item-days (8.8% vs. 14%) while catching slightly more shortages (75% vs. 71%), and its average predicted probability fell from 26% to 2.9%. Low stock against recent demand, a rising demand trend, surges, and supplier delays raise the estimate. The output is a screening estimate that requires manager review, not an automatic order trigger.
 
 ## Validation completed
 
@@ -31,7 +32,8 @@ The seven-day shortage model achieved ROC-AUC 0.8712 and recall 0.7083, but prec
 - Saved artifacts were regenerated successfully from the training script.
 - The original data pipeline continues to report 13 of 13 validation checks passing.
 - The application exposes the exact holdout measures stored by the training pipeline.
-- Syntax and launch tests are documented in the repository review before submission.
+- Every page, both what-if forms, empty-filter cases, and the original descriptive acceptance values were tested with Streamlit's app-testing tool after the model revision.
+- scikit-learn is pinned (1.7.2) so the saved models load the same way locally and on Streamlit Community Cloud.
 
 ## Remaining submission actions
 

@@ -1,33 +1,85 @@
 {
-  "version": "v2.0-week10-2026-10-24",
+  "version": "v2.1-week10-2026-10-25",
+  "sklearn_version": "1.7.2",
   "random_state": 20261024,
   "training_period": [
     "2024-01-01",
     "2024-12-31"
   ],
+  "selection_period": {
+    "fit": [
+      "2024-01-01",
+      "2024-09-30"
+    ],
+    "validation": [
+      "2024-10-01",
+      "2024-12-31"
+    ]
+  },
   "test_period": [
     "2025-01-01",
     "2025-12-24"
   ],
-  "split_method": "chronological; 2024 training and 2025 testing",
+  "split_method": "chronological; candidates compared only on 2024 data (rolling folds for demand, Oct-Dec 2024 for shortage), final models refitted on all of 2024 and tested once on 2025",
+  "train_rows": 2928,
+  "test_rows": 2864,
   "demand": {
     "kpi": "Predicted units requested during the next seven days",
-    "algorithm": "GradientBoostingRegressor",
-    "features": [
-      "ed_arrivals",
-      "forecast_arrivals_1d",
-      "forecast_arrivals_7d",
-      "demand_lag1",
-      "demand_roll7",
-      "use_rate_per_arrival",
-      "day_of_week_num",
-      "month",
-      "weekend_flag",
-      "holiday_flag",
-      "surge_flag",
-      "item_id"
+    "algorithm": "Gradient boosting without item code",
+    "selection": [
+      {
+        "candidate": "Benchmark: 7-day arrival forecast \u00d7 units per arrival (no fitting)",
+        "fold_wape": [
+          0.0415,
+          0.0819,
+          0.0507,
+          0.0676
+        ],
+        "mean_validation_wape": 0.0604
+      },
+      {
+        "candidate": "Gradient boosting without item code",
+        "fold_wape": [
+          0.0446,
+          0.104,
+          0.047,
+          0.0681
+        ],
+        "mean_validation_wape": 0.0659
+      },
+      {
+        "candidate": "Gradient boosting with item code (first Week 10 version)",
+        "fold_wape": [
+          0.0448,
+          0.1043,
+          0.0475,
+          0.0679
+        ],
+        "mean_validation_wape": 0.0661
+      },
+      {
+        "candidate": "Gradient boosting with arrival-driven expected demand",
+        "fold_wape": [
+          0.0459,
+          0.1061,
+          0.0463,
+          0.0654
+        ],
+        "mean_validation_wape": 0.066
+      },
+      {
+        "candidate": "Linear regression on expected and recent demand",
+        "fold_wape": [
+          0.062,
+          0.0952,
+          0.05,
+          0.0703
+        ],
+        "mean_validation_wape": 0.0694
+      }
     ],
-    "numeric_features": [
+    "selection_rule": "lowest mean WAPE over four rolling 2024 validation folds; candidates within 0.25 percentage points are treated as tied and the first-listed (simplest, no item code) design is preferred",
+    "raw_predictors": [
       "ed_arrivals",
       "forecast_arrivals_1d",
       "forecast_arrivals_7d",
@@ -40,13 +92,25 @@
       "holiday_flag",
       "surge_flag"
     ],
-    "categorical_features": [
-      "item_id"
+    "model_predictors": [
+      "ed_arrivals",
+      "forecast_arrivals_1d",
+      "forecast_arrivals_7d",
+      "demand_lag1",
+      "demand_roll7",
+      "use_rate_per_arrival",
+      "day_of_week_num",
+      "month",
+      "weekend_flag",
+      "holiday_flag",
+      "surge_flag"
     ],
+    "coefficients_per_unit": {},
     "metrics": {
-      "mae_units": 58.671,
-      "rmse_units": 95.369,
-      "wape": 0.0385,
+      "wape": 0.0384,
+      "benchmark_wape": 0.0379,
+      "mae_units": 58.568,
+      "rmse_units": 95.233,
       "r2": 0.995
     },
     "reference_values": {
@@ -54,85 +118,86 @@
       "forecast_arrivals_1d": 192.4,
       "forecast_arrivals_7d": 1377.25,
       "demand_lag1": 153,
-      "demand_roll7": 155.57142857142858,
+      "demand_roll7": 155.5714,
       "use_rate_per_arrival": 0.81,
       "day_of_week_num": 3,
       "month": 7,
       "weekend_flag": 0,
       "holiday_flag": 0,
-      "surge_flag": 0,
-      "item_id": "BLOODTUBE"
+      "surge_flag": 0
     }
   },
   "shortage": {
     "kpi": "Probability of any backorder during the next seven days",
-    "algorithm": "Class-weighted LogisticRegression",
-    "features": [
-      "forecast_arrivals_7d",
-      "demand_lag1",
-      "demand_roll7",
-      "inventory_position",
-      "closing_on_hand",
-      "open_order_qty",
-      "backorder_qty",
+    "algorithm": "Logistic regression on coverage and trend predictors, class-weighted, with sigmoid probability calibration",
+    "selection": [
+      {
+        "candidate": "Logistic regression on coverage and trend predictors",
+        "validation_roc_auc": 0.8106,
+        "validation_average_precision": 0.2036
+      },
+      {
+        "candidate": "Logistic regression on original predictors",
+        "validation_roc_auc": 0.7071,
+        "validation_average_precision": 0.0815
+      }
+    ],
+    "selection_rule": "highest validation average precision (suited to rare outcomes)",
+    "raw_predictors": [
       "days_of_supply",
       "lead_time_days",
-      "use_rate_per_arrival",
-      "service_level_target",
+      "closing_on_hand",
+      "demand_lag1",
+      "demand_roll7",
+      "forecast_arrivals_7d",
+      "avg_arrivals_28d",
       "surge_flag",
-      "item_id",
       "supplier_event"
     ],
-    "numeric_features": [
-      "forecast_arrivals_7d",
-      "demand_lag1",
-      "demand_roll7",
-      "inventory_position",
-      "closing_on_hand",
-      "open_order_qty",
-      "backorder_qty",
+    "model_predictors": [
       "days_of_supply",
-      "lead_time_days",
-      "use_rate_per_arrival",
-      "service_level_target",
-      "surge_flag"
-    ],
-    "categorical_features": [
-      "item_id",
+      "coverage_gap_days",
+      "stock_cover_ratio",
+      "demand_trend",
+      "arrival_ratio",
+      "surge_flag",
       "supplier_event"
     ],
     "metrics": {
       "positive_cases": 24,
       "test_rows": 2864,
-      "precision": 0.0425,
-      "recall": 0.7083,
-      "f1": 0.0802,
-      "roc_auc": 0.8712,
-      "brier_score": 0.117
+      "observed_rate": 0.0084,
+      "mean_predicted_probability": 0.0291,
+      "roc_auc": 0.9148,
+      "average_precision": 0.2241,
+      "brier_score": 0.009,
+      "brier_score_base_rate": 0.0087,
+      "screening_threshold": 0.0731,
+      "alerts": 253,
+      "alert_share": 0.0883,
+      "precision": 0.0711,
+      "recall": 0.75,
+      "f1": 0.13
     },
     "reference_values": {
-      "forecast_arrivals_7d": 1377.25,
-      "demand_lag1": 153,
-      "demand_roll7": 155.57142857142858,
-      "inventory_position": 1217.5,
-      "closing_on_hand": 865.5,
-      "open_order_qty": 350,
-      "backorder_qty": 0,
       "days_of_supply": 8.45,
       "lead_time_days": 3,
-      "use_rate_per_arrival": 0.81,
-      "service_level_target": 0.965,
+      "closing_on_hand": 865.5,
+      "demand_lag1": 153,
+      "demand_roll7": 155.5714,
+      "forecast_arrivals_7d": 1377.25,
+      "avg_arrivals_28d": 196.0179,
       "surge_flag": 0,
-      "item_id": "BLOODTUBE",
       "supplier_event": "none"
     },
-    "decision_threshold": 0.5
+    "decision_threshold": 0.0731,
+    "threshold_rule": "maximum F1 on the Oct-Dec 2024 validation period"
   },
-  "interpretation_method": "Overall importance uses test-set permutation importance. Individual contributions use model-agnostic one-feature-at-a-time reference replacement; contributions are predictive, approximate, may not sum exactly because of interactions, and are not causal effects.",
+  "interpretation_method": "Overall importance uses test-set permutation importance on the raw predictors. Individual contributions use one-predictor-at-a-time replacement with the training reference value; contributions are predictive, approximate, may not sum exactly because of interactions, and are not causal effects.",
   "limitations": [
     "All observations and outcomes are synthetic.",
     "Only eight consumables from one simulated emergency department are represented.",
-    "The shortage outcome is rare, so probability estimates require calibration with real data.",
+    "Shortages are rare (24 positive test rows), so precision is low and probabilities need recalibration on real data.",
     "Scenario changes are model-based comparisons, not guaranteed intervention effects."
   ]
 }
