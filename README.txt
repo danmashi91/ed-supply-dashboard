@@ -14,9 +14,11 @@ Reproduce and run
 Predictive extension
 --------------------
 - KPI 1: predicted item demand during the next seven days, modeled with a
-  gradient boosting regressor.
+  gradient boosting regressor and compared with a no-model benchmark
+  (arrival forecast x units per arrival).
 - KPI 2: probability of any backorder during the next seven days, modeled
-  with class-weighted logistic regression.
+  with class-weighted logistic regression plus probability calibration.
+- Models are chosen on 2024 data only and tested once on 2025.
 - Overall importance: permutation importance on the chronological 2025
   holdout set.
 - Individual contributions: one-feature-at-a-time reference replacement;
@@ -27,7 +29,8 @@ Predictive extension
 Important limitation
 --------------------
 The data and outcomes are synthetic. The shortage model has low precision
-because positive cases are rare. Use all predictions for demonstration and
+because positive cases are rare, and the demand model does not beat the
+simple arrival-based benchmark on this synthetic data. Use all predictions for demonstration and
 decision screening only, not automatic purchasing or clinical decisions.
 
 See README.md and docs/week10_progress_report.md for complete details.
