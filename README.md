@@ -1,3 +1,9 @@
+   ## Week 10 deliverables
+   - **Demo video (7 min):** https://drive.google.com/file/d/1b5Kpco7R8baw41fm1eNZpaUsr5KRJJIW/view?usp=sharing
+   - **Live app:** (https://ed-supply-dashboard.streamlit.app/)
+   - **Progress report:** docs/week10_progress_report.md
+   - **Group contributions:** docs/group_contributions.md
+
 # ED Supply Decision Support — Version 2 (Week 10 Predictive Dashboard)
 
 Streamlit application using two years (2024-01-01 through 2025-12-31) of **synthetic** emergency-department arrivals and supply data for eight routine consumables. It combines descriptive monitoring with two predictive models, transparent model explanations, and interactive what-if analysis.
