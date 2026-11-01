@@ -1,0 +1,28 @@
+kpi,segment_type,segment,rows,positives,mae,wape,bias,roc_auc,average_precision,precision,recall,false_positives,false_negatives
+Seven-day demand,item,BLOODTUBE,358,,65.042,0.0363,-23.519,,,,,,
+Seven-day demand,item,GAUZE,358,,60.263,0.0388,-12.506,,,,,,
+Seven-day demand,item,GLOVEM,358,,180.743,0.0371,-126.583,,,,,,
+Seven-day demand,item,IVKIT,358,,28.488,0.0498,-3.61,,,,,,
+Seven-day demand,item,MASK,358,,40.443,0.0402,-1.897,,,,,,
+Seven-day demand,item,SALFLUSH,358,,40.089,0.0336,-10.03,,,,,,
+Seven-day demand,item,SPECCUP,358,,24.245,0.0492,5.234,,,,,,
+Seven-day demand,item,UNDERPAD,358,,29.23,0.0416,-1.203,,,,,,
+Seven-day demand,surge,0,2768,,56.534,0.0372,-21.454,,,,,,
+Seven-day demand,surge,1,96,,117.222,0.0708,-30.719,,,,,,
+Seven-day demand,demand band,lowest,716,,26.29,0.0495,2.845,,,,,,
+Seven-day demand,demand band,lower-middle,716,,34.062,0.0399,-0.01,,,,,,
+Seven-day demand,demand band,upper-middle,716,,48.247,0.0352,-5.638,,,,,,
+Seven-day demand,demand band,highest,716,,125.671,0.0376,-84.254,,,,,,
+Seven-day shortage,item,BLOODTUBE,358,0,,,,,,0.0,0.0,20,0
+Seven-day shortage,item,GAUZE,358,8,,,,0.9804,0.66,0.375,0.75,10,2
+Seven-day shortage,item,GLOVEM,358,0,,,,,,0.0,0.0,8,0
+Seven-day shortage,item,IVKIT,358,0,,,,,,0.0,0.0,19,0
+Seven-day shortage,item,MASK,358,0,,,,,,0.0,0.0,17,0
+Seven-day shortage,item,SALFLUSH,358,0,,,,,,0.0,0.0,14,0
+Seven-day shortage,item,SPECCUP,358,8,,,,0.9346,0.3881,0.2273,0.625,17,3
+Seven-day shortage,item,UNDERPAD,358,8,,,,0.8082,0.222,0.1034,0.375,26,5
+Seven-day shortage,surge,0,2768,11,,,,0.8645,0.0879,0.0345,0.2727,84,8
+Seven-day shortage,surge,1,96,13,,,,0.721,0.4138,0.1897,0.8462,47,2
+Seven-day shortage,supplier event,delayed,75,4,,,,0.8908,0.6394,0.1143,1.0,31,0
+Seven-day shortage,supplier event,none,2743,20,,,,0.9184,0.1835,0.098,0.5,92,10
+Seven-day shortage,supplier event,short_shipped,46,0,,,,,,0.0,0.0,8,0

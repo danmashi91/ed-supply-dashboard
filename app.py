@@ -1,5 +1,5 @@
 """
-ED Supply Decision Support — Version 2 (Week 10 Predictive Dashboard)
+ED Supply Decision Support — Version 3 (Predictive Validation Dashboard)
 
 Streamlit multipage app built from docs/app_specification.md
 (data version v1.1-2026-10-19).
@@ -50,13 +50,14 @@ MODEL_PATHS = {
     "metadata": MODEL_DIR / "model_metadata.json",
     "model_data": DATA_DIR / "modeling" / "model_dataset.csv",
     "importance": DATA_DIR / "modeling" / "global_importance.csv",
+    "error_analysis": DATA_DIR / "modeling" / "error_analysis.csv",
 }
 
 ASSUMPTION_VERSION = "v1.1-2026-10-19"
 FOOTER_TEXT = (
     "Prototype using synthetic data and illustrative assumptions "
     f"(assumption version {ASSUMPTION_VERSION}). Not for real ordering or "
-    "clinical decisions. The descriptive risk score is a ranking proxy; the Week 10 "
+    "clinical decisions. The descriptive risk score is a ranking proxy; the validated "
     "shortage output is a model estimate, not a guaranteed outcome."
 )
 WEEKDAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -104,7 +105,7 @@ VALIDATION = data["validation"]
 
 
 @st.cache_resource(show_spinner="Loading predictive models…")
-def load_models() -> tuple[object, object, dict, pd.DataFrame, pd.DataFrame]:
+def load_models() -> tuple[object, object, dict, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Load the two trained models and their transparent supporting outputs."""
     import json
 
@@ -116,7 +117,8 @@ def load_models() -> tuple[object, object, dict, pd.DataFrame, pd.DataFrame]:
     metadata = json.loads(MODEL_PATHS["metadata"].read_text(encoding="utf-8"))
     model_data = pd.read_csv(MODEL_PATHS["model_data"], parse_dates=["date"])
     importance = pd.read_csv(MODEL_PATHS["importance"])
-    return demand_model, shortage_model, metadata, model_data, importance
+    error_analysis = pd.read_csv(MODEL_PATHS["error_analysis"])
+    return demand_model, shortage_model, metadata, model_data, importance, error_analysis
 
 # Lookups for display names (always show item_name, not the code).
 ITEM_NAME = dict(zip(ITEMS["item_id"], ITEMS["item_name"]))
@@ -828,11 +830,11 @@ def page_scenarios() -> None:
 # Page 5 — Predictive Models & What-If Analysis (Week 10)
 # ---------------------------------------------------------------------------
 def page_predictive_models() -> None:
-    st.title("Predictive Models & What-If Analysis")
-    st.caption("What does the model predict, why, and what changes under a user-defined scenario?")
+    st.title("Predictive Model Validation & What-If Analysis")
+    st.caption("How credible is the model, where does it struggle, and what changes under a plausible scenario?")
 
     try:
-        demand_model, shortage_model, metadata, model_data, importance = load_models()
+        demand_model, shortage_model, metadata, model_data, importance, error_analysis = load_models()
     except FileNotFoundError as exc:
         st.error(str(exc))
         st.code("python code/train_predictive_models.py")
@@ -905,6 +907,14 @@ def page_predictive_models() -> None:
             sel["Mean validation WAPE (4 rolling folds)"] = sel["Mean validation WAPE (4 rolling folds)"].map("{:.2%}".format)
         st.dataframe(sel, hide_index=True, width="stretch")
         st.caption(f"Rule: {details['selection_rule']}. Chosen: {details['algorithm']}.")
+    with st.expander("Data availability and leakage checks"):
+        st.markdown(
+            "The prediction is made **after the daily inventory close on day t**. The outcome covers days "
+            "t+1 through t+7. Therefore, only information known by the end of day t is permitted."
+        )
+        for check in metadata.get("leakage_checks", []):
+            st.markdown(f"- {check}")
+        st.caption(metadata.get("final_test_policy", ""))
 
     # ------------------------------------------------------------------
     # 2. Validation on the 2025 test period
@@ -946,6 +956,54 @@ def page_predictive_models() -> None:
         f"Training: {metadata['training_period'][0]} to {metadata['training_period'][1]} · "
         f"Test: {metadata['test_period'][0]} to {metadata['test_period'][1]} · Split: chronological."
     )
+
+    # ------------------------------------------------------------------
+    # Original/revised comparison and error conditions
+    # ------------------------------------------------------------------
+    st.subheader("Baseline, original and revised comparison")
+    comparison = pd.DataFrame(details.get("original_vs_revised", []))
+    if not comparison.empty:
+        comparison = comparison.rename(columns={
+            "version": "Version", "model": "Method", "validation_wape": "Validation WAPE",
+            "test_wape": "Test WAPE", "test_mae_units": "Test MAE (units)",
+            "validation_average_precision": "Validation average precision",
+            "test_roc_auc": "Test ROC-AUC", "test_average_precision": "Test average precision",
+            "test_brier_score": "Test Brier score", "test_precision": "Test precision",
+            "test_recall": "Test recall", "retained": "Retained",
+        })
+        st.dataframe(comparison, hide_index=True, width="stretch")
+    st.info(details.get("improvement_conclusion", ""))
+
+    st.subheader("Where performance is weaker")
+    segments = error_analysis[error_analysis["kpi"] == ("Seven-day shortage" if probability else "Seven-day demand")].copy()
+    if probability:
+        item_segments = segments[segments["segment_type"] == "item"].sort_values(
+            ["recall", "false_positives"], ascending=[True, False]
+        )
+        display_cols = ["segment", "rows", "positives", "average_precision", "precision", "recall",
+                        "false_positives", "false_negatives"]
+        st.dataframe(item_segments[display_cols].rename(columns={
+            "segment": "Item", "rows": "Rows", "positives": "Shortages",
+            "average_precision": "Average precision", "precision": "Precision", "recall": "Recall",
+            "false_positives": "False alerts", "false_negatives": "Missed shortages",
+        }), hide_index=True, width="stretch")
+        st.warning(
+            "Only Gauze, Specimen cups and Underpads have shortage cases in the 2025 test period. "
+            "Underpads have the weakest recall, while items with no observed shortages still generate false "
+            "alerts. Subgroup estimates are unstable because the positive counts are very small. Users should "
+            "treat the score as a review queue, not an automatic order instruction."
+        )
+    else:
+        weak = segments.sort_values("wape", ascending=False).head(10)
+        st.dataframe(weak[["segment_type", "segment", "rows", "mae", "wape", "bias"]].rename(columns={
+            "segment_type": "Segment type", "segment": "Segment", "rows": "Rows",
+            "mae": "MAE (units)", "wape": "WAPE", "bias": "Average bias (units)",
+        }), hide_index=True, width="stretch")
+        st.warning(
+            "Demand errors are largest during surge periods (7.08% WAPE versus 3.72% otherwise). "
+            "The model also tends to underpredict the highest-demand cases. During surges, the manager should "
+            "keep additional safety stock and compare the model with the simpler arrival-based benchmark."
+        )
 
     # ------------------------------------------------------------------
     # 3a/3b. Overall predictor importance + contextual interpretation
@@ -1031,53 +1089,107 @@ def page_predictive_models() -> None:
     st.subheader("What-if scenario")
     st.caption(
         f"Baseline = the recorded values for {ITEM_NAME.get(model_item, model_item)} on {model_date:%Y-%m-%d} "
-        f"(prediction {fmt_pred(baseline_prediction)}). Change any input and run the scenario. The result is a "
+        f"(prediction {fmt_pred(baseline_prediction)}). Change the permitted scenario inputs and run it. The result is a "
         "model-based scenario, not a guaranteed effect of a real-world change."
     )
+    if probability:
+        control_table = pd.DataFrame([
+            ["Planning inputs", "Closing stock; supplier lead time", "May change through ordering, stock allocation or supplier choice, but not instantly."],
+            ["External scenario conditions", "Arrival forecast; surge; supplier event", "Can be tested but is not controlled by the inventory manager."],
+            ["Fixed/observed", "Recent demand; 28-day arrivals", "Known historical values and therefore locked for the selected date."],
+            ["Derived", "Days of supply", "Recalculated when closing stock changes; it cannot be edited independently."],
+        ], columns=["Type", "Predictors", "How to interpret"])
+    else:
+        control_table = pd.DataFrame([
+            ["External scenario conditions", "One-day and seven-day arrival forecasts; surge", "Can be tested but is not controlled by the inventory manager."],
+            ["Fixed/observed", "Current arrivals; recent demand; units per arrival; calendar fields", "Known or fixed for the selected item/date and therefore locked."],
+            ["Decision output", "Seven-day demand prediction", "Informs stock planning; it is not itself a controllable input."],
+        ], columns=["Type", "Predictors", "How to interpret"])
+    with st.expander("Which predictors can change?"):
+        st.dataframe(control_table, hide_index=True, width="stretch")
+
     values = baseline_row[raw].iloc[0].to_dict()
+    observed_ranges = details.get("input_ranges", {})
+
+    def float_limits(feature: str) -> tuple[float, float]:
+        baseline = float(values[feature])
+        limits = observed_ranges.get(feature, {"min": 0.0, "max": max(1.0, baseline * 2)})
+        return min(float(limits["min"]), baseline), max(float(limits["max"]), baseline)
+
+    def int_limits(feature: str) -> tuple[int, int]:
+        low, high = float_limits(feature)
+        return int(np.floor(low)), int(np.ceil(high))
+
     with st.form(f"what_if_{key}"):
         c1, c2, c3 = st.columns(3)
         if probability:
             with c1:
-                values["days_of_supply"] = st.number_input("Days of supply", min_value=0.0,
-                                                           value=float(values["days_of_supply"]), step=0.5)
-                values["lead_time_days"] = st.number_input("Supplier lead time (days)", min_value=1,
-                                                           value=int(values["lead_time_days"]), step=1)
-                values["closing_on_hand"] = st.number_input("Closing stock (units)", min_value=0,
-                                                            value=int(values["closing_on_hand"]), step=10)
+                lo, hi = int_limits("closing_on_hand")
+                values["closing_on_hand"] = st.number_input(
+                    "Closing stock (planning input)", min_value=max(0, lo), max_value=hi,
+                    value=int(values["closing_on_hand"]), step=10,
+                    help="Observed 2024 development-data range is enforced.",
+                )
+                lo, hi = int_limits("lead_time_days")
+                values["lead_time_days"] = st.number_input(
+                    "Supplier lead time (planning input)", min_value=max(1, lo), max_value=hi,
+                    value=int(values["lead_time_days"]), step=1,
+                )
+                st.text_input("Days of supply", value="Calculated after submission", disabled=True)
             with c2:
-                values["demand_lag1"] = st.number_input("Previous-day item demand", min_value=0.0,
-                                                        value=float(values["demand_lag1"]), step=5.0)
-                values["demand_roll7"] = st.number_input("Trailing seven-day average demand", min_value=0.0,
-                                                         value=float(values["demand_roll7"]), step=5.0)
-                values["forecast_arrivals_7d"] = st.number_input("Seven-day arrival forecast", min_value=0.0,
-                                                                 value=float(values["forecast_arrivals_7d"]), step=25.0)
+                lo, hi = float_limits("forecast_arrivals_7d")
+                values["forecast_arrivals_7d"] = st.number_input(
+                    "Seven-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
+                    value=float(values["forecast_arrivals_7d"]), step=25.0,
+                )
+                st.text_input("Previous-day demand (fixed)", value=fmt_value(values["demand_lag1"]), disabled=True)
+                st.text_input("Trailing demand (fixed)", value=fmt_value(values["demand_roll7"]), disabled=True)
             with c3:
-                values["surge_flag"] = int(st.checkbox("Demand surge", value=bool(values["surge_flag"])))
+                values["surge_flag"] = int(st.checkbox("Demand surge (external)", value=bool(values["surge_flag"])))
                 events = MF.SUPPLIER_EVENTS
                 current = str(values["supplier_event"])
-                values["supplier_event"] = st.selectbox("Supplier event", events,
+                values["supplier_event"] = st.selectbox("Supplier event (external)", events,
                                                         index=events.index(current) if current in events else 0)
         else:
             with c1:
-                values["ed_arrivals"] = st.number_input("Current ED arrivals", min_value=0,
-                                                        value=int(values["ed_arrivals"]), step=5)
-                values["forecast_arrivals_1d"] = st.number_input("One-day arrival forecast", min_value=0.0,
-                                                                 value=float(values["forecast_arrivals_1d"]), step=5.0)
-                values["forecast_arrivals_7d"] = st.number_input("Seven-day arrival forecast", min_value=0.0,
-                                                                 value=float(values["forecast_arrivals_7d"]), step=25.0)
+                lo, hi = float_limits("forecast_arrivals_1d")
+                values["forecast_arrivals_1d"] = st.number_input(
+                    "One-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
+                    value=float(values["forecast_arrivals_1d"]), step=5.0,
+                )
+                lo, hi = float_limits("forecast_arrivals_7d")
+                values["forecast_arrivals_7d"] = st.number_input(
+                    "Seven-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
+                    value=float(values["forecast_arrivals_7d"]), step=25.0,
+                )
             with c2:
-                values["demand_lag1"] = st.number_input("Previous-day item demand", min_value=0.0,
-                                                        value=float(values["demand_lag1"]), step=5.0)
-                values["demand_roll7"] = st.number_input("Trailing seven-day average demand", min_value=0.0,
-                                                         value=float(values["demand_roll7"]), step=5.0)
+                st.text_input("Current arrivals (fixed)", value=fmt_value(values["ed_arrivals"]), disabled=True)
+                st.text_input("Previous-day demand (fixed)", value=fmt_value(values["demand_lag1"]), disabled=True)
+                st.text_input("Trailing demand (fixed)", value=fmt_value(values["demand_roll7"]), disabled=True)
             with c3:
-                values["surge_flag"] = int(st.checkbox("Demand surge", value=bool(values["surge_flag"])))
-                values["holiday_flag"] = int(st.checkbox("Holiday", value=bool(values["holiday_flag"])))
+                values["surge_flag"] = int(st.checkbox("Demand surge (external)", value=bool(values["surge_flag"])))
+                st.text_input("Holiday status (fixed)", value="Yes" if values["holiday_flag"] else "No", disabled=True)
         run = st.form_submit_button("Run model-based scenario", type="primary")
 
     if not run:
         st.caption("Run the scenario to see the updated prediction, its contributions, and an automatic summary.")
+        return
+
+    # Maintain the relationship between closing stock and days of supply. The
+    # adjustment uses the selected row's recent average daily demand.
+    if probability:
+        stock_change = float(values["closing_on_hand"]) - float(baseline_row["closing_on_hand"].iloc[0])
+        values["days_of_supply"] = max(
+            0.0,
+            float(baseline_row["days_of_supply"].iloc[0]) + stock_change / max(float(values["demand_roll7"]), 1.0),
+        )
+    invalid = []
+    if not probability and values["forecast_arrivals_7d"] < values["forecast_arrivals_1d"]:
+        invalid.append("The seven-day arrival forecast cannot be lower than the one-day arrival forecast.")
+    if invalid:
+        for message in invalid:
+            st.error(message)
+        st.info("No scenario prediction was produced. Correct the inputs and run the scenario again.")
         return
 
     updated = pd.DataFrame([values])
@@ -1088,6 +1200,23 @@ def page_predictive_models() -> None:
     b.metric("Scenario prediction", fmt_pred(updated_prediction))
     c.metric("Change from baseline", f"{delta * 100:+.1f} pts" if probability else f"{delta:+,.0f} units",
              help="For probabilities, the change is in percentage points." if probability else None)
+
+    comparison_rows = []
+    for feature in raw:
+        before = baseline_row[feature].iloc[0]
+        after = updated[feature].iloc[0]
+        if fmt_value(before) != fmt_value(after):
+            comparison_rows.append({
+                "Input": PREDICTOR_LABELS.get(feature, readable(feature)),
+                "Baseline": fmt_value(before), "Scenario": fmt_value(after),
+                "Change": (f"{float(after) - float(before):+,.2f}"
+                           if isinstance(before, (int, float, np.integer, np.floating)) else "Changed"),
+            })
+    st.markdown("**Baseline versus scenario inputs**")
+    if comparison_rows:
+        st.dataframe(pd.DataFrame(comparison_rows), hide_index=True, width="stretch")
+    else:
+        st.info("No input values changed; the scenario repeats the baseline.")
 
     contrib = reference_replacement_contributions(model, updated, details, probability)
     st.markdown("**Contributions to the scenario prediction**")
@@ -1130,9 +1259,10 @@ def page_predictive_models() -> None:
         f"**What drives it.** {contribution_sentence(contrib, probability)}\n\n"
         f"**Implication.** {implication}\n\n"
         "**Limitations.** This is a model-based scenario on synthetic data. The model learned associations, "
-        "not causes, so changing a real-world input is not guaranteed to change the outcome this way. Inputs are "
-        "edited one at a time and may form combinations the model never saw (for example, days of supply that "
-        "no longer matches closing stock). Not an automatic purchasing or clinical decision."
+        "not causes, so changing a real-world input is not guaranteed to change the outcome this way. Numeric "
+        "inputs are limited to values observed in the 2024 development data, fixed historical fields are locked, "
+        "and days of supply is recalculated when closing stock changes. Even a plausible scenario can differ from "
+        "real operations. Not an automatic purchasing or clinical decision."
     )
 
 
@@ -1182,7 +1312,7 @@ not taken from real hospital records. Item assumptions are manually constructed 
 - Supplier disruptions: each order has an 8% chance of arriving 2–6 days late and a 5% chance of
   being short-shipped (30–70% of the units ordered).
 
-**Predictive extension.** Version 2 trains a seven-day demand model and a seven-day shortage model.
+**Predictive extension.** Version 3 trains and compares a seven-day demand model and a seven-day shortage model.
 The models are evaluated on a chronological 2025 holdout period and are intended for demonstration
 and decision screening only.
 
