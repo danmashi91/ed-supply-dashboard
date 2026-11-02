@@ -30,15 +30,18 @@ Candidate models, predictor choices and the shortage screening threshold were se
 
 ### Seven-day demand
 
-WAPE is the primary metric because it expresses total absolute error as a share of total demand and is understandable for aggregate stock planning. MAE reports the average unit error, RMSE emphasizes large misses, and R² is reported only as a supplementary fit measure because item scales differ greatly. The baseline is seven-day forecast arrivals multiplied by the item's assumed units per arrival.
+WAPE is the primary metric because it expresses total absolute error as a share of total demand and is understandable for aggregate stock planning. MAE reports the average unit error, RMSE emphasizes large misses, and R² is reported only as a supplementary fit measure because item scales differ greatly. The baseline is the seven-day arrival forecast multiplied by the item's assumed units per arrival.
 
-| Version | Validation WAPE | 2025 test WAPE | 2025 MAE |
-|---|---:|---:|---:|
-| Simple formula baseline | 6.04% | 3.79% | 57.77 units |
-| Original Week 10 gradient boosting with item code | 6.61% | 3.85% | 58.67 units |
-| Revised gradient boosting without item code | 6.59% | 3.84% | 58.57 units |
+Because the application is used for what-if analysis, a second requirement was added during development: **the prediction must not fall when more patients are expected.** For every candidate, all arrival inputs were raised by 10% on each 2024 validation row, and the share of rows where the prediction went down was recorded.
 
-The revised model is slightly simpler and marginally better than the original model, but it does not beat the simple baseline. This is expected because the synthetic demand-generation process is primarily driven by arrivals and item use rate. The application displays this result directly. For real deployment, the learned demand model should not replace the formula unless it demonstrates repeatable improvement on real external data.
+| Version | Validation WAPE (2024 folds) | Rows where +10% patients lowers demand | 2025 test WAPE | 2025 MAE | Retained |
+|---|---:|---:|---:|---:|:---:|
+| Simple formula baseline | 6.04% | 0% | 3.79% | 57.8 units | ✅ |
+| Original Week 10 gradient boosting (with item code) | 6.61% | 73% | 3.85% | 58.7 units | |
+| Week 10 revision (without item code) | 6.59% | 71% | 3.84% | 58.6 units | |
+| Week 11 improvement: monotone-constrained gradient boosting | 6.70% | 0% | 4.65% | 70.9 units | |
+
+The learned models do not provide a meaningful improvement over the baseline. The Week 10 models also respond in the wrong direction to patient volume on most rows: their what-if results told a user that more patients meant *less* demand. Under the selection rule (respond in the right direction, then lowest 2024 validation WAPE), the **arrival-based formula is retained** as the KPI 1 prediction. This is expected for synthetic data generated mainly from arrivals × use rate; with real data containing other demand drivers (acuity mix, seasonal outbreaks, practice changes), a learned model may add value and should be re-tested against the same baseline and direction check.
 
 ### Seven-day shortage probability
 
@@ -56,7 +59,7 @@ The revised shortage model is retained. Its test average precision is approximat
 
 ### Demand errors
 
-The demand model performs worse during surge periods: 7.08% WAPE and 117.2-unit MAE versus 3.72% WAPE and 56.5-unit MAE on non-surge days. The highest-demand quartile has a mean bias of -84.3 units, indicating underprediction. IV kits and specimen cups have the highest item-level WAPE, at 4.98% and 4.92%. The practical implication is that users should retain additional safety stock and consult the simple arrival-based benchmark during surge or unusually high-demand conditions.
+Errors are concentrated in surge periods: 11.1% WAPE and 184-unit MAE during surges versus 3.5% and 53 units otherwise. During surges the estimate is too low by about 167 units per item-week on average, because the arrival forecast is built from past arrivals and does not anticipate a surge. Specimen cups (4.95%) and underpads (4.48%) have the highest item-level WAPE. The practical implication is that during a surge the manager should hold additional safety stock and use the what-if to test a higher arrival forecast rather than rely on the baseline estimate.
 
 ### Shortage errors
 
@@ -64,25 +67,26 @@ Only Gauze, Specimen cups and Underpads contain positive shortage cases in the 2
 
 ## 5. Model improvements and retained versions
 
-For demand, the improvement removed item code because units per arrival already represents item scale. This produced nearly identical validation and test performance with a simpler model that is more transferable to a new item. The revised model is retained for the explanatory workflow, while the superior simple benchmark remains visible.
+**Demand.** Two improvements were evaluated with the same rolling-fold procedure on 2024 data. (1) Removing the item code (Week 10 revision) gave the same accuracy with a simpler model, but the direction check showed it still lowered predictions for more patients on 71% of rows. (2) A monotone-constrained gradient boosting model, which is not allowed to lower its prediction when arrivals, recent demand or use rate rise, fixed the direction problem but was less accurate (6.70% validation WAPE). Neither improvement beat the formula baseline, so the formula is retained and the learned models are documented as unsuccessful but informative improvements. The best learned model is saved for reference (`models/demand_learned_model.joblib`).
 
-For shortage, the improvement replaced the original raw inventory predictors with scale-free coverage and trend predictors and repaired calibration with explicit calendar-based folds. This increased validation average precision from 0.120 to 0.253 and test average precision from 0.123 to 0.252. The revised model is retained.
+**Shortage.** The improvement replaced the original raw inventory predictors with scale-free coverage and trend predictors and repaired calibration with explicit calendar-based folds. This increased validation average precision from 0.120 to 0.253 and test average precision from 0.123 to 0.252, with a better Brier score. The revised model is retained as a screening tool.
 
 ## 6. Explanation and what-if improvements
 
 Version 3 adds:
 
-- Plain-language baseline/original/revised performance tables.
-- Segment-level error displays and user implications.
+- Plain-language performance statements beside the technical metrics (for example, "roughly 1 in 10 flagged items actually runs short; it catches about 6 in 10 shortages").
+- Baseline/original/revised comparison tables, including the direction check for demand.
+- Segment-level error displays whose wording is computed from the saved error analysis, with user implications.
 - A data-availability and leakage-check explanation.
 - Clear separation of overall importance from individual prediction contributions.
-- Labels for planning inputs, external scenario conditions, fixed observations and derived fields.
-- Development-data ranges on numeric editable inputs.
-- Locked historical and calendar fields.
+- Labels for planning inputs, external conditions, fixed observations and derived fields.
+- Plausible ranges from the 2024 development data, with closing stock limited to each item's own range.
+- Locked historical, calendar and item-characteristic fields.
 - Automatic recalculation of days of supply when closing stock changes.
-- Rejection of an invalid seven-day arrival forecast below the one-day forecast.
-- Side-by-side baseline and scenario input tables, predictions and differences.
-- A summary that describes inputs, results, trade-offs and non-causal limitations.
+- A cross-check that the seven-day arrival forecast stays within 0.75–1.40× seven times the one-day forecast (2024 values were 0.83–1.25×). Inconsistent scenarios are rejected with an explanation and no prediction is shown.
+- A side-by-side table of baseline and scenario inputs, predictions, differences and (for shortage) whether the item would be flagged.
+- An automatic summary covering inputs, comparison, drivers, implication, trade-offs and limitations, stated as model-based scenarios rather than causal effects.
 
 ## 7. Structured user testing
 
@@ -92,7 +96,7 @@ User testing is pending completion with a person outside the project group. The 
 
 - All data and outcomes are synthetic and reflect the generator's assumptions.
 - Only eight items and one simulated ED are represented.
-- The demand model does not outperform its simple baseline.
+- No learned demand model outperformed the simple arrival-based formula; demand errors roughly triple during surges, when the estimate is too low.
 - Only 24 shortage-positive test rows exist, concentrated in three items.
 - Subgroup performance cannot be estimated reliably where no positive cases occur.
 - The selected threshold represents one precision/recall trade-off and should be chosen with a real manager's error costs.
@@ -111,4 +115,4 @@ python code/train_predictive_models.py
 streamlit run app.py
 ```
 
-The identifiable Week 10 copy is preserved in branch `week10-submission-snapshot`. Version 3 work is developed in branch `week11-validation`.
+The identifiable Week 10 copy is preserved as tag `week10-submission` (and branch `week10-submission-snapshot`). Version 3 work is developed in branch `week11-validation`.

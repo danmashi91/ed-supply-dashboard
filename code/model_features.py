@@ -74,3 +74,32 @@ def add_model_features(df: pd.DataFrame) -> pd.DataFrame:
         out["demand_trend"] = out["demand_lag1"] / out["demand_roll7"].clip(lower=1)
         out["arrival_ratio"] = out["forecast_arrivals_7d"] / (out["avg_arrivals_28d"] * 7).clip(lower=1)
     return out
+
+
+# ---------------------------------------------------------------------------
+# KPI 1 retained method (Week 11 evaluation)
+# ---------------------------------------------------------------------------
+DEMAND_FORMULA_PREDICTORS = ["forecast_arrivals_7d", "use_rate_per_arrival"]
+ARRIVAL_PREDICTORS = ["ed_arrivals", "forecast_arrivals_1d", "forecast_arrivals_7d"]
+
+# Plausibility check for scenarios: across the 2024 development data the 7-day
+# forecast was always 0.83-1.25 times seven times the 1-day forecast. Scenarios
+# outside a slightly wider band are rejected as internally inconsistent.
+FORECAST_RATIO_LIMITS = (0.75, 1.40)
+
+
+class ArrivalFormulaModel:
+    """Retained KPI 1 predictor: seven-day arrival forecast x units used per arrival.
+
+    It has no fitted parameters. Week 11 evaluation kept it because it had the
+    lowest 2024 validation error of every candidate that responds in the right
+    direction to patient volume (more expected patients never lowers demand).
+    """
+
+    def predict(self, X: pd.DataFrame):
+        return (X["forecast_arrivals_7d"] * X["use_rate_per_arrival"]).to_numpy(dtype=float)
+
+
+def forecast_ratio(forecast_7d: float, forecast_1d: float) -> float:
+    """Seven-day forecast relative to seven times the one-day forecast."""
+    return float(forecast_7d) / max(7.0 * float(forecast_1d), 1.0)

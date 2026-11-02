@@ -36,7 +36,7 @@ import sklearn
 from sklearn.base import clone
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor, HistGradientBoostingRegressor
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import (
     average_precision_score,
@@ -53,6 +53,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from model_features import (
+    FORECAST_RATIO_LIMITS,
+    ARRIVAL_PREDICTORS,
+    DEMAND_FORMULA_PREDICTORS,
+    ArrivalFormulaModel,
     DEMAND_MODEL_NUMERIC,
     DEMAND_RAW,
     SHORTAGE_MODEL_CATEGORICAL,
@@ -142,7 +146,7 @@ def gradient_boosting() -> GradientBoostingRegressor:
 
 
 def demand_candidates() -> dict[str, tuple[Pipeline, list[str]]]:
-    """Listed in order of preference; see TIE_MARGIN in main()."""
+    """Learned candidates compared with the no-fitting formula in main()."""
     return {
         "Gradient boosting without item code": (
             Pipeline([("prep", preprocessor(DEMAND_MODEL_NUMERIC, [])), ("model", gradient_boosting())]),
@@ -155,6 +159,15 @@ def demand_candidates() -> dict[str, tuple[Pipeline, list[str]]]:
         "Gradient boosting with arrival-driven expected demand": (
             Pipeline([("prep", preprocessor(["expected_demand_7d"] + DEMAND_MODEL_NUMERIC, [])),
                       ("model", gradient_boosting())]),
+            ["expected_demand_7d"] + DEMAND_MODEL_NUMERIC,
+        ),
+        "Monotone-constrained gradient boosting (Week 11 improvement)": (
+            Pipeline([("model", HistGradientBoostingRegressor(
+                loss="squared_error", max_iter=300, learning_rate=0.05, random_state=RANDOM_STATE,
+                # +1 = the prediction may only rise when this predictor rises.
+                monotonic_cst=[1 if c in ARRIVAL_PREDICTORS + ["expected_demand_7d", "demand_lag1", "demand_roll7",
+                                                               "use_rate_per_arrival", "surge_flag"] else 0
+                               for c in ["expected_demand_7d"] + DEMAND_MODEL_NUMERIC]))]),
             ["expected_demand_7d"] + DEMAND_MODEL_NUMERIC,
         ),
         "Linear regression on expected and recent demand": (
@@ -328,23 +341,58 @@ def main() -> None:
             v = train[(train["date"] >= start) & (train["date"] < end)]
             scores.append(wape(v[y_d], fit_and_predict(f, v)))
         return scores
+    def direction_violation(predict, v: pd.DataFrame) -> float:
+        """Share of rows where 10% more expected patients LOWERS the prediction.
+
+        A what-if tool must not tell a manager that more patients means less
+        demand, so candidates that do this on more than 1% of rows are excluded.
+        """
+        up = v.copy()
+        for col in ARRIVAL_PREDICTORS:
+            up[col] = up[col] * 1.10
+        base = predict(add_model_features(v))
+        return float(np.mean(predict(add_model_features(up)) < base - 0.5))
+
+    def evaluate_candidate(make_predictor) -> tuple[list[float], float]:
+        scores, violations = [], []
+        for start, end in folds:
+            f = train[train["date"] < start]
+            v = train[(train["date"] >= start) & (train["date"] < end)]
+            predict = make_predictor(f)
+            scores.append(wape(v[y_d], predict(v)))
+            violations.append(direction_violation(predict, v))
+        return scores, float(np.mean(violations))
+
+    FORMULA_NAME = "Simple formula: 7-day arrival forecast × units per arrival (no fitting)"
     demand_selection = []
-    bench = fold_scores(lambda f, v: v["expected_demand_7d"].to_numpy())
-    demand_selection.append({"candidate": "Benchmark: 7-day arrival forecast × units per arrival (no fitting)",
-                             "fold_wape": [round(x, 4) for x in bench], "mean_validation_wape": round(float(np.mean(bench)), 4)})
+    formula = ArrivalFormulaModel()
+    scores, viol = evaluate_candidate(lambda f: formula.predict)
+    demand_selection.append({"candidate": FORMULA_NAME, "fold_wape": [round(x, 4) for x in scores],
+                             "mean_validation_wape": round(float(np.mean(scores)), 4),
+                             "direction_violation_share": round(viol, 4)})
     for name, (pipe, cols) in demand_candidates().items():
-        scores = fold_scores(lambda f, v, p=pipe, c=cols: np.maximum(0, clone(p).fit(f[c], f[y_d]).predict(v[c])))
+        def make(f, p=pipe, c=cols):
+            fitted = clone(p).fit(f[c], f[y_d])
+            return lambda d: np.maximum(0, fitted.predict(d[c]))
+        scores, viol = evaluate_candidate(make)
         demand_selection.append({"candidate": name, "fold_wape": [round(x, 4) for x in scores],
-                                 "mean_validation_wape": round(float(np.mean(scores)), 4)})
-    # Fitted candidates within TIE_MARGIN of the best are treated as tied; the
-    # first-listed (preferred) design wins a tie.
-    TIE_MARGIN = 0.0025
-    fitted = [r for r in demand_selection if not r["candidate"].startswith("Benchmark")]
-    best = min(r["mean_validation_wape"] for r in fitted)
-    demand_choice = next(r["candidate"] for r in fitted if r["mean_validation_wape"] <= best + TIE_MARGIN)
-    demand_model, demand_cols = demand_candidates()[demand_choice]
-    demand_model.fit(train[demand_cols], train[y_d])
-    demand_pred = np.maximum(0, demand_model.predict(test[demand_cols]))
+                                 "mean_validation_wape": round(float(np.mean(scores)), 4),
+                                 "direction_violation_share": round(viol, 4)})
+    # Rule: among candidates that respond in the right direction to patient
+    # volume (violations below 1% of rows), keep the lowest mean validation WAPE.
+    eligible = [r for r in demand_selection if r["direction_violation_share"] < 0.01]
+    demand_choice = min(eligible, key=lambda r: r["mean_validation_wape"])["candidate"]
+    if demand_choice == FORMULA_NAME:
+        demand_model, demand_cols, demand_raw = formula, DEMAND_FORMULA_PREDICTORS, DEMAND_FORMULA_PREDICTORS
+        demand_pred = formula.predict(test)
+    else:
+        demand_model, demand_cols = demand_candidates()[demand_choice]
+        demand_model.fit(train[demand_cols], train[y_d])
+        demand_raw = DEMAND_RAW
+        demand_pred = np.maximum(0, demand_model.predict(test[demand_cols]))
+    # Best learned model, kept for reference in the comparison table and saved file.
+    learned = [r for r in demand_selection if r["candidate"] != FORMULA_NAME]
+    learned_name = min(learned, key=lambda r: r["mean_validation_wape"])["candidate"]
     demand_benchmark = test["expected_demand_7d"].to_numpy()
     demand_metrics = {
         "wape": round(wape(test[y_d], demand_pred), 4),
@@ -354,38 +402,39 @@ def main() -> None:
         "r2": round(float(r2_score(test[y_d], demand_pred)), 4),
     }
     coefficients = {}
-    if isinstance(demand_model.named_steps["model"], LinearRegression):
+    if isinstance(demand_model, Pipeline) and isinstance(demand_model.named_steps["model"], LinearRegression):
         scaler = demand_model.named_steps["prep"].named_transformers_["numeric"]
         raw_coef = demand_model.named_steps["model"].coef_ / scaler.scale_
         coefficients = {c: round(float(v), 4) for c, v in zip(DEMAND_MODEL_NUMERIC, raw_coef)}
 
-    original_demand_name = "Gradient boosting with item code (first Week 10 version)"
-    original_demand, original_demand_cols = demand_candidates()[original_demand_name]
-    original_demand.fit(train[original_demand_cols], train[y_d])
-    original_demand_pred = np.maximum(0, original_demand.predict(test[original_demand_cols]))
-    validation_by_name = {r["candidate"]: r["mean_validation_wape"] for r in demand_selection}
-    demand_comparison = [
-        {
-            "version": "Simple baseline", "model": "7-day arrival forecast × units per arrival",
-            "validation_wape": validation_by_name[demand_selection[0]["candidate"]],
-            "test_wape": round(wape(test[y_d], demand_benchmark), 4),
-            "test_mae_units": round(float(mean_absolute_error(test[y_d], demand_benchmark)), 3),
-            "retained": False,
-        },
-        {
-            "version": "Original Week 10", "model": original_demand_name,
-            "validation_wape": validation_by_name[original_demand_name],
-            "test_wape": round(wape(test[y_d], original_demand_pred), 4),
-            "test_mae_units": round(float(mean_absolute_error(test[y_d], original_demand_pred)), 3),
-            "retained": demand_choice == original_demand_name,
-        },
-        {
-            "version": "Revised", "model": demand_choice,
-            "validation_wape": validation_by_name[demand_choice],
-            "test_wape": demand_metrics["wape"], "test_mae_units": demand_metrics["mae_units"],
-            "retained": True,
-        },
+    # Final 2025 reporting for every version in the comparison table. This runs
+    # after the choice above is fixed, so the test set does not influence it.
+    by_name = {r["candidate"]: r for r in demand_selection}
+    versions = [
+        ("Simple baseline", FORMULA_NAME),
+        ("Original Week 10", "Gradient boosting with item code (first Week 10 version)"),
+        ("Week 10 revision", "Gradient boosting without item code"),
+        ("Week 11 improvement attempt", "Monotone-constrained gradient boosting (Week 11 improvement)"),
     ]
+    demand_comparison = []
+    saved_learned = None
+    for label, name in versions:
+        if name == FORMULA_NAME:
+            pred = formula.predict(test)
+        else:
+            pipe, cols = demand_candidates()[name]
+            pipe.fit(train[cols], train[y_d])
+            pred = np.maximum(0, pipe.predict(test[cols]))
+            if name == learned_name:
+                saved_learned = pipe
+        demand_comparison.append({
+            "version": label, "model": name,
+            "validation_wape": by_name[name]["mean_validation_wape"],
+            "direction_violation_share": by_name[name]["direction_violation_share"],
+            "test_wape": round(wape(test[y_d], pred), 4),
+            "test_mae_units": round(float(mean_absolute_error(test[y_d], pred)), 3),
+            "retained": name == demand_choice,
+        })
 
     # ---------------- KPI 2: shortage ----------------
     y_s = "target_shortage_next_7d"
@@ -476,7 +525,7 @@ def main() -> None:
 
     # ---------------- Overall importance (2025 test set) ----------------
     demand_imp = permutation_importance_raw(
-        lambda d: np.maximum(0, demand_model.predict(d[demand_cols])), test, DEMAND_RAW,
+        lambda d: np.maximum(0, demand_model.predict(d[demand_cols])), test, demand_raw,
         lambda p: -mean_absolute_error(test[y_d], p), RANDOM_STATE)
     demand_imp.insert(0, "model", "Seven-day demand")
     shortage_imp = permutation_importance_raw(
@@ -503,11 +552,19 @@ def main() -> None:
     importance.to_csv(MODELING_DIR / "global_importance.csv", index=False)
     error_analysis.to_csv(MODELING_DIR / "error_analysis.csv", index=False)
     predictions.to_csv(MODELING_DIR / "evaluation_predictions.csv", index=False)
-    joblib.dump(demand_model, MODEL_DIR / "demand_model.joblib")
+    # The retained demand method is the formula (no fitted file needed). The best
+    # learned candidate is saved for reference and reproducibility.
+    old_file = MODEL_DIR / "demand_model.joblib"
+    if old_file.exists():
+        old_file.unlink()
+    if saved_learned is None:
+        pipe, cols = demand_candidates()[learned_name]
+        saved_learned = pipe.fit(train[cols], train[y_d])
+    joblib.dump(saved_learned, MODEL_DIR / "demand_learned_model.joblib")
     joblib.dump(shortage_model, MODEL_DIR / "shortage_model.joblib")
 
     metadata = {
-        "version": "v3.0-validation-2026-11-01",
+        "version": "v3.1-validation-2026-11-02",
         "sklearn_version": sklearn.__version__,
         "random_state": RANDOM_STATE,
         "training_period": [str(train["date"].min().date()), str(train["date"].max().date())],
@@ -530,16 +587,31 @@ def main() -> None:
         "demand": {
             "kpi": "Predicted units requested during the next seven days",
             "algorithm": demand_choice,
+            "retained_type": "formula" if demand_choice == FORMULA_NAME else "learned",
+            "best_learned_candidate": learned_name,
             "selection": demand_selection,
-            "selection_rule": "lowest mean WAPE over four rolling 2024 validation folds; candidates within 0.25 percentage points are treated as tied and the first-listed (simplest, no item code) design is preferred",
-            "raw_predictors": DEMAND_RAW,
+            "selection_rule": ("candidates must respond in the right direction to patient volume (10% more expected "
+                               "patients lowers the prediction on under 1% of validation rows); among those, the lowest "
+                               "mean WAPE over four rolling 2024 validation folds is retained"),
+            "raw_predictors": demand_raw,
             "model_predictors": demand_cols,
             "coefficients_per_unit": coefficients,
             "metrics": demand_metrics,
-            "reference_values": reference_values(train, DEMAND_RAW),
+            "reference_values": reference_values(train, demand_raw),
             "input_ranges": input_ranges(train, DEMAND_RAW),
+            "forecast_ratio_limits": list(FORECAST_RATIO_LIMITS),
             "original_vs_revised": demand_comparison,
-            "improvement_conclusion": "Removing item code produced nearly identical validation error with a simpler, more transferable model. The revised model is retained, but the formula baseline remains slightly better and must be shown to users.",
+            "improvement_conclusion": (
+                "Week 11 testing found that the Week 10 gradient boosting model lowered its demand prediction when more "
+                f"patients were expected on {by_name['Gradient boosting without item code']['direction_violation_share']:.0%} "
+                "of validation rows, so its what-if results were not credible. A monotone-constrained model fixed the "
+                f"direction ({by_name['Monotone-constrained gradient boosting (Week 11 improvement)']['mean_validation_wape']:.2%} "
+                "validation WAPE) but no learned model beat the simple formula "
+                f"({by_name[FORMULA_NAME]['mean_validation_wape']:.2%}). The formula is retained as the KPI 1 prediction; "
+                "the learned models are kept as documented comparisons."
+                if demand_choice == FORMULA_NAME else
+                f"{demand_choice} is retained under the selection rule."
+            ),
         },
         "shortage": {
             "kpi": "Probability of any backorder during the next seven days",
@@ -551,6 +623,9 @@ def main() -> None:
             "metrics": shortage_metrics,
             "reference_values": reference_values(train, SHORTAGE_RAW),
             "input_ranges": input_ranges(train, SHORTAGE_RAW),
+            "input_ranges_by_item": {
+                item: input_ranges(group, ["closing_on_hand"]) for item, group in train.groupby("item_id")
+            },
             "original_vs_revised": shortage_comparison,
             "improvement_conclusion": "Coverage and trend predictors improved rare-event ranking over the original raw predictor set. Date-safe calibration fixes the internal temporal leakage risk. The revised model is retained as a screening model.",
             "decision_threshold": round(threshold, 4),

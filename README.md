@@ -8,7 +8,7 @@
 
 Streamlit application using two years (2024-01-01 through 2025-12-31) of **synthetic** emergency-department arrivals and supply data for eight routine consumables. It combines descriptive monitoring with two predictive models, transparent model explanations, and interactive what-if analysis.
 
-Data version: `v1.1-2026-10-19`. Model version: `v3.0-validation-2026-11-01`.
+Data version: `v1.1-2026-10-19`. Model version: `v3.1-validation-2026-11-02`.
 
 Team: Monica Hall and Abubakar Sani (MS Analytics, Saint Louis University).
 
@@ -43,16 +43,16 @@ The app reads the generated CSV and model files without modifying them. The comm
 
 | KPI | Decision use | Algorithm | 2025 holdout result |
 |---|---|---|---|
-| Predicted item demand during the next seven days | Replenishment planning and avoidance of emergency purchases or excess stock | Gradient boosting regressor | WAPE 3.84% (no-model benchmark 3.79%); MAE 58.6 units; RMSE 95.2; R² 0.995 |
+| Predicted item demand during the next seven days | Replenishment planning and avoidance of emergency purchases or excess stock | Arrival-based formula (7-day arrival forecast × units per arrival), retained after Week 11 evaluation; learned models kept as comparisons | WAPE 3.79%; MAE 57.8 units (best learned model 3.84%) |
 | Probability of any backorder during the next seven days | Prioritize items for review, ordering, or supplier escalation | Date-safe calibrated, class-weighted logistic regression | ROC-AUC 0.919; average precision 0.252; at the 5.61% screening threshold: 5.06% of item-days flagged, recall 58.33%, precision 9.66%; 24 positive test rows |
 
-## Validation update
+## Validation update (Week 11)
 
-Version 3 preserves the Week 10 submission in branch `week10-submission-snapshot` and strengthens the evaluation without using the 2025 final test set for model selection. It repairs probability calibration with explicit date-based folds, saves row-level final-test predictions and segment error analysis, and compares the baseline, original and revised models.
+The Week 10 submission is preserved as the git tag `week10-submission` (also branch `week10-submission-snapshot`). Version 3 strengthens the evaluation without using the 2025 final test set for model selection:
 
-The date-safe revised shortage model achieves ROC-AUC 0.919, average precision 0.252 and Brier score 0.0075. At the 5.61% screening threshold selected on 2024 validation data, it flags 5.06% of item-days, with 9.66% precision and 58.33% recall. The demand model remains at 3.84% WAPE and does not beat the 3.79% formula baseline.
-
-What-if controls now distinguish planning inputs, external conditions, fixed observations and derived values. Numeric inputs are constrained to development-data ranges, historical inputs are locked, days of supply remains consistent with stock changes, invalid arrival-forecast combinations are rejected, and baseline/scenario inputs are displayed side by side.
+- **Shortage (KPI 2):** probability calibration repaired with explicit date-based folds. ROC-AUC 0.919, average precision 0.252, Brier score 0.0075. At the 5.61% screening threshold selected on 2024 data, it flags 5.06% of item-days, with 9.66% precision and 58.33% recall.
+- **Demand (KPI 1):** a direction check found that the Week 10 gradient boosting model predicted *lower* demand when 10% more patients were expected on 71% of validation rows. A monotone-constrained model was tried as the improvement; it fixed the direction but was less accurate (6.70% vs. 6.04% validation WAPE). Under the selection rule (must move in the right direction, then lowest 2024 validation error), the arrival-based formula is retained. Learned models remain in the comparison table.
+- **What-if:** inputs are labelled as planning inputs, external conditions, fixed observations or derived values; numbers are limited to 2024 ranges (closing stock per item); days of supply follows closing stock; a seven-day forecast inconsistent with the one-day forecast is rejected with no prediction shown; baseline and scenario are compared side by side; the automatic summary covers inputs, comparison, drivers, implication, trade-offs and limitations.
 
 Models are selected on 2024 data only (rolling folds for demand, Oct–Dec 2024 for shortage), refitted on all of 2024, and tested once on 2025. Overall importance uses permutation importance on the holdout set. Individual contributions use one-predictor-at-a-time replacement with a typical training value; they are approximate, may not sum because of interactions, and are not causal effects. Predictor definitions shared by training and the app are in `code/model_features.py`.
 
@@ -74,7 +74,7 @@ docs/
 
 ## Limitations
 
-All observations and outcomes are synthetic, cover only eight supplies, and represent one simulated emergency department. The demand model's strong accuracy reflects known simulation structure, and it does not beat a simple arrival-based formula. Shortages are rare, so the shortage model's low precision can create many false alerts; it is a screening aid, not an automatic ordering rule. What-if results are model-based scenarios, not guaranteed intervention effects. This prototype is not for real purchasing or clinical decisions.
+All observations and outcomes are synthetic, cover only eight supplies, and represent one simulated emergency department. The demand estimate's accuracy reflects known simulation structure; no learned model beat the arrival-based formula, and errors roughly triple during surges. Shortages are rare, so the shortage model's low precision can create many false alerts; it is a screening aid, not an automatic ordering rule. What-if results are model-based scenarios, not guaranteed intervention effects. This prototype is not for real purchasing or clinical decisions.
 
 ## Week 10 supporting deliverables
 
@@ -89,4 +89,4 @@ All observations and outcomes are synthetic, cover only eight supplies, and repr
 - `docs/user_testing_protocol.md` — structured external-user tasks and observation form.
 - `data/modeling/evaluation_predictions.csv` — saved 2025 predictions and errors.
 - `data/modeling/error_analysis.csv` — performance by item, surge status, demand band and supplier event.
-- `week10-submission-snapshot` branch — identifiable copy of the Week 10 submission.
+- `week10-submission` tag (and `week10-submission-snapshot` branch) — identifiable copy of the Week 10 submission.
