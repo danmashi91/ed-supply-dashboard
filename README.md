@@ -1,4 +1,14 @@
-   ## Week 10 deliverables
+## Week 11 deliverables (current submission)
+- **Live app (revised):** https://ed-supply-dashboard.streamlit.app/ (see the **Predictive Models** page)
+- **Evaluation report:** [docs/week11_evaluation_report.md](docs/week11_evaluation_report.md): evaluation design and leakage checks, model vs. baseline comparison, improvements tried and why the final models were kept, user-testing findings and resulting changes, limitations and future work
+- **User-testing protocol:** [docs/user_testing_protocol.md](docs/user_testing_protocol.md)
+- **Evaluation outputs:** `data/modeling/evaluation_predictions.csv`, `data/modeling/error_analysis.csv`, `models/model_metadata.json`
+- **Setup and dependencies:** see "Reproduce and run" below and `requirements.txt`
+- **Group contributions:** [docs/group_contributions.md](docs/group_contributions.md)
+- **Demo video (7 min):** *link to be added*
+- **Week 10 submission (preserved for traceability):** tag [`week10-submission`](https://github.com/danmashi91/ed-supply-dashboard/releases/tag/week10-submission)
+
+## Week 10 deliverables
    - **Demo video (7 min):** https://drive.google.com/file/d/1b5Kpco7R8baw41fm1eNZpaUsr5KRJJIW/view?usp=sharing
    - **Live app:** (https://ed-supply-dashboard.streamlit.app/)
    - **Progress report:** docs/week10_progress_report.md
