@@ -852,6 +852,62 @@ def page_predictive_models() -> None:
         icon="ℹ️",
     )
 
+    # ------------------------------------------------------------------
+    # Recommended actions (added after user testing: the participant asked for
+    # simple recommendations on which items need attention and when to order)
+    # ------------------------------------------------------------------
+    st.subheader("Recommended actions")
+    rec_pool = model_data[model_data["item_id"].isin(selected_items)]
+    rec_pool = rec_pool[(rec_pool["date"].dt.date >= START) & (rec_pool["date"].dt.date <= END)]
+    if rec_pool.empty:
+        st.info("No model rows match the sidebar filters. Model rows end on 2025-12-24.", icon="🔎")
+    else:
+        rec_dates = sorted(rec_pool["date"].dt.date.unique())
+        rec_date = st.selectbox("Review date", rec_dates, index=len(rec_dates) - 1, key="rec_date",
+                                format_func=lambda d: d.strftime("%Y-%m-%d"))
+        rows = rec_pool[rec_pool["date"].dt.date == rec_date]
+        stock = DAILY[DAILY["date"].dt.date == rec_date].set_index("item_id")
+        s_thr = float(metadata["shortage"].get("decision_threshold", 0.5))
+        recs = []
+        for _, r in rows.iterrows():
+            one = r.to_frame().T.reset_index(drop=True)
+            p_short = model_prediction(shortage_model, one[metadata["shortage"]["raw_predictors"]], metadata["shortage"], True)
+            demand7 = model_prediction(demand_model, one[metadata["demand"]["raw_predictors"]], metadata["demand"], False)
+            pos = float(stock.loc[r["item_id"], "inventory_position"])
+            pack = int(stock.loc[r["item_id"], "case_pack"])
+            gap = max(0.0, demand7 - pos)
+            order_units = int(np.ceil(gap / pack) * pack) if gap > 0 else 0
+            if p_short >= s_thr:
+                action = "🔴 Review now: check stock and supplier; order or expedite if confirmed"
+                rank = 0
+            elif order_units > 0:
+                action = "🟠 Order this week: stock will not cover next week's demand"
+                rank = 1
+            else:
+                action = "🟢 No action needed: stock covers next week"
+                rank = 2
+            recs.append({"rank": rank, "p": p_short, "Item": ITEM_NAME.get(r["item_id"], r["item_id"]),
+                         "Recommended action": action,
+                         "Shortage probability": f"{p_short:.1%}",
+                         "Expected use, next 7 days": f"{demand7:,.0f}",
+                         "Stock incl. open orders": f"{pos:,.0f}",
+                         "Suggested order (units)": f"{order_units:,}" + (f" ({order_units // pack} case{'s' if order_units // pack != 1 else ''})" if order_units else "")})
+        rec_df = pd.DataFrame(recs).sort_values(["rank", "p"], ascending=[True, False])
+        n_red, n_orange = int((rec_df["rank"] == 0).sum()), int((rec_df["rank"] == 1).sum())
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Review now", n_red)
+        c2.metric("Order this week", n_orange)
+        c3.metric("No action needed", len(rec_df) - n_red - n_orange)
+        st.dataframe(rec_df.drop(columns=["rank", "p"]), hide_index=True, width="stretch")
+        st.caption(
+            f"How these are made: **Review now** = shortage probability at or above the {s_thr:.1%} screening "
+            "threshold. **Order this week** = expected use over the next 7 days is more than stock on hand plus open "
+            "orders; the suggested order covers the gap, rounded up to whole case packs. These are model-based "
+            "suggestions for the manager to check, not automatic orders: about 1 in 10 review flags turned out to be "
+            "a real shortage in 2025, and the suggestion does not add safety stock or account for lead time."
+        )
+    st.divider()
+
     model_choice = st.radio(
         "KPI model", ["Seven-day item demand", "Seven-day shortage probability"], horizontal=True,
     )
@@ -975,7 +1031,10 @@ def page_predictive_models() -> None:
     # ------------------------------------------------------------------
     # Original/revised comparison and error conditions
     # ------------------------------------------------------------------
-    st.subheader("Baseline, original and revised comparison")
+    st.divider()
+    st.subheader("Evaluation details")
+    st.caption("Expand a section for the full tables. The key results are summarized above.")
+    comp_box = st.expander("Baseline, original and revised comparison", expanded=False)
     comparison = pd.DataFrame(details.get("original_vs_revised", []))
     if not comparison.empty:
         comparison = comparison.rename(columns={
@@ -992,11 +1051,12 @@ def page_predictive_models() -> None:
             if col in comparison:
                 comparison[col] = comparison[col].map(lambda v: f"{v:.1%}" if isinstance(v, (int, float)) else v)
         comparison["Retained"] = comparison["Retained"].map({True: "✅ Retained", False: ""})
-        st.dataframe(comparison, hide_index=True, width="stretch")
-        st.caption("Validation = chosen on 2024 data only. Test = 2025, reported once after the choice was fixed.")
+        comp_box.dataframe(comparison, hide_index=True, width="stretch")
+        comp_box.caption("Validation = chosen on 2024 data only. Test = 2025, reported once after the choice was fixed.")
     st.info(details.get("improvement_conclusion", ""))
 
-    st.subheader("Where performance is weaker")
+    st.markdown("**Where performance is weaker**")
+    seg_box = st.expander("Full error table by item and condition", expanded=False)
     segments = error_analysis[error_analysis["kpi"] == ("Seven-day shortage" if probability else "Seven-day demand")].copy()
     if probability:
         item_segments = segments[segments["segment_type"] == "item"].sort_values(
@@ -1004,7 +1064,7 @@ def page_predictive_models() -> None:
         )
         display_cols = ["segment", "rows", "positives", "average_precision", "precision", "recall",
                         "false_positives", "false_negatives"]
-        st.dataframe(item_segments[display_cols].rename(columns={
+        seg_box.dataframe(item_segments[display_cols].rename(columns={
             "segment": "Item", "rows": "Rows", "positives": "Shortages",
             "average_precision": "Average precision", "precision": "Precision", "recall": "Recall",
             "false_positives": "False alerts", "false_negatives": "Missed shortages",
@@ -1031,10 +1091,10 @@ def page_predictive_models() -> None:
         weak["Average miss"] = pd.to_numeric(weak["wape"]).map("{:.1%}".format)
         weak["Typical miss (units)"] = pd.to_numeric(weak["mae"]).round(0).astype(int)
         weak["Average bias (units)"] = pd.to_numeric(weak["bias"]).map("{:+,.0f}".format)
-        st.dataframe(weak[["segment_type", "Segment", "rows", "Average miss", "Typical miss (units)", "Average bias (units)"]]
+        seg_box.dataframe(weak[["segment_type", "Segment", "rows", "Average miss", "Typical miss (units)", "Average bias (units)"]]
                      .rename(columns={"segment_type": "Segment type", "rows": "Item-weeks"}),
                      hide_index=True, width="stretch")
-        st.caption("Bias: negative = the estimate was too low (risk of running short); positive = too high.")
+        seg_box.caption("Bias: negative = the estimate was too low (risk of running short); positive = too high.")
         surge = segments[segments["segment_type"] == "surge"].set_index("segment")
         band = segments[segments["segment_type"] == "demand band"].set_index("segment")
         s_on = float(surge.loc["1", "wape"]) if "1" in surge.index else float("nan")
@@ -1051,6 +1111,7 @@ def page_predictive_models() -> None:
     # ------------------------------------------------------------------
     # 3a/3b. Overall predictor importance + contextual interpretation
     # ------------------------------------------------------------------
+    st.divider()
     st.subheader("Overall predictor importance (whole test period)")
     model_name = "Seven-day shortage" if probability else "Seven-day demand"
     imp = importance[importance["model"] == model_name].copy()
@@ -1093,6 +1154,7 @@ def page_predictive_models() -> None:
         stop_with("No model rows match the current sidebar filters. Model rows end on 2025-12-24, "
                   "because each needs seven days of known outcomes.")
 
+    st.divider()
     st.subheader("Individual prediction")
     left, right = st.columns(2)
     with left:
@@ -1128,6 +1190,7 @@ def page_predictive_models() -> None:
     # ------------------------------------------------------------------
     # 3c. What-if analysis
     # ------------------------------------------------------------------
+    st.divider()
     st.subheader("What-if scenario")
     st.caption(
         f"Baseline = the recorded values for {ITEM_NAME.get(model_item, model_item)} on {model_date:%Y-%m-%d} "

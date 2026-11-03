@@ -75,6 +75,7 @@ Only Gauze, Specimen cups and Underpads contain positive shortage cases in the 2
 
 Version 3 adds:
 
+- A "Recommended actions" table (added after user testing).
 - Plain-language performance statements beside the technical metrics (for example, "roughly 1 in 10 flagged items actually runs short; it catches about 6 in 10 shortages").
 - Baseline/original/revised comparison tables, including the direction check for demand.
 - Segment-level error displays whose wording is computed from the saved error analysis, with user implications.
@@ -90,7 +91,30 @@ Version 3 adds:
 
 ## 7. Structured user testing
 
-User testing is pending completion with a person outside the project group. The test protocol is in `docs/user_testing_protocol.md`. This section must be updated with the participant profile, observed tasks, misunderstandings, feedback and at least one resulting application change before final submission. No confidential or real patient data will be shown.
+**Participant.** One Saint Louis University peer outside the project group. The participant is a **substitute** for the intended decision-maker: they are not an ED inventory manager and have no hospital supply-chain role. Only synthetic data was shown; no confidential or patient data was involved.
+
+**Method and date.** On 2026-11-02 the participant used the deployed application (all pages, including the predictive models and what-if analysis) and then gave written feedback. The protocol in `docs/user_testing_protocol.md` guided the session. A task-by-task observation record (time per task, errors made while interpreting a baseline prediction or its contributions) was **not** captured; this is a limitation of the test.
+
+**What worked for the participant.**
+- Focusing on two decisions, predicting demand and identifying possible shortages, was clear and relevant.
+- The dashboard was well organized; the trend and spending charts helped explain inventory patterns.
+- Scenario comparison and what-if analysis made the application more useful for decision-making.
+
+**Problems and missing information.**
+1. **No direct recommendations.** The participant wanted simple guidance based on the predictions: *which items need immediate attention* and *when additional inventory should be ordered*. The application showed probabilities and forecasts but left the user to turn them into an action.
+2. **Crowded layout.** Some charts and sections looked crowded; better spacing and readability would make navigation easier.
+
+**Changes made because of the test.**
+1. **Recommended actions table (addresses problem 1).** The Predictive Models page now opens with a review date and a table for every selected item, sorted by urgency:
+   - 🔴 *Review now*: shortage probability at or above the screening threshold;
+   - 🟠 *Order this week*: expected use over the next seven days exceeds stock on hand plus open orders; a suggested order covers the gap, rounded up to whole case packs;
+   - 🟢 *No action needed*.
+   Counts of each category are shown at the top. The caption states how each recommendation is produced and that these are model-based suggestions for the manager to check, not automatic orders (about 1 in 10 review flags was followed by a real shortage in 2025, and the order suggestion does not add safety stock or lead-time cover).
+2. **Less crowded layout (addresses problem 2).** Major sections on the Predictive Models page are separated by dividers, and the long evaluation tables (version comparison, full error table) are folded into expandable sections, while the key conclusions and warnings stay visible.
+
+**Not changed.** A full visual redesign of the other pages was not attempted before submission; it is listed under future work.
+
+**Limitations of this test.** One participant; a substitute rather than an ED inventory manager; written feedback rather than a full observed task record. A follow-up test with a hospital supply-chain professional, recording each protocol task, is a priority.
 
 ## 8. Remaining limitations and future priorities
 
@@ -103,6 +127,8 @@ User testing is pending completion with a person outside the project group. The 
 - Local contributions are approximate model sensitivities and may not add exactly because predictors interact.
 - Scenario results are predictive associations, not causal intervention effects.
 - Real data, external-site validation, monitoring for drift, probability recalibration and decision-cost evaluation are required before operational use.
+- User testing so far is one substitute participant; a test with an ED inventory manager and a broader visual redesign are future priorities.
+- Order suggestions in the Recommended actions table cover only next week's expected use; they do not yet include safety stock, lead time or case-pack cost trade-offs.
 
 ## 9. Reproducibility
 
