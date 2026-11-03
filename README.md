@@ -48,6 +48,8 @@ The app reads the generated CSV and model files without modifying them. The comm
 
 ## Validation update (Week 11)
 
+**User testing:** one external participant (a substitute decision-maker) asked for simple recommendations and a less crowded layout. The Predictive Models page now opens with a **Recommended actions** table (Review now / Order this week / No action needed, with a suggested order size), and long evaluation tables are folded into expandable sections. Details are in section 7 of `docs/week11_evaluation_report.md`.
+
 The Week 10 submission is preserved as the git tag `week10-submission` (also branch `week10-submission-snapshot`). Version 3 strengthens the evaluation without using the 2025 final test set for model selection:
 
 - **Shortage (KPI 2):** probability calibration repaired with explicit date-based folds. ROC-AUC 0.919, average precision 0.252, Brier score 0.0075. At the 5.61% screening threshold selected on 2024 data, it flags 5.06% of item-days, with 9.66% precision and 58.33% recall.
