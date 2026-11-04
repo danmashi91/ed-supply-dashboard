@@ -1,58 +1,77 @@
 # User Acceptance Testing Results
 
-## Test context
+Two people outside the project group tested the deployed application independently. Both are **substitutes** for the intended decision-maker: neither is an emergency-department inventory manager. Only synthetic data was shown; no confidential or patient information was involved. Participants are described by general role only.
 
-- **Test date:** November 2, 2026
-- **Participant:** Adult outside the project group
-- **Decision-maker status:** Substitute participant, not an emergency-department inventory manager
-- **Data shown:** Synthetic data only
-- **Objective:** Evaluate the responsiveness, usability and practical usefulness of the model-based what-if analysis
+| | Tester A | Tester B |
+|---|---|---|
+| Background | Saint Louis University peer outside the project group | Adult outside the project group |
+| Date | November 2, 2026 | November 2, 2026 |
+| Arranged by | Abubakar Sani | Monica Hall |
+| Format | Explored all pages, then gave written feedback | Completed demand what-if tasks and reported results and feedback |
 
-The participant tested two demand scenarios by changing the seven-day patient-arrival forecast while the remaining inputs stayed fixed.
+## Tester A
 
-## Task-by-task record
+### What the participant did
 
-| Rubric task | Participant action or response | Outcome | Error, confusion or missing information |
-|---|---|---|---|
-| Interpret the baseline prediction | Used the displayed baseline of 1,285.30 expected arrivals and 540 predicted units of seven-day demand as the reference for both comparisons. | The participant treated 540 units as the baseline demand estimate for inventory planning. | No misunderstanding reported. |
-| Identify the main factor contributing to the prediction | Identified the seven-day patient-arrival forecast as the factor changed in the test while the one-day forecast, current arrivals and units used per arrival remained fixed. | The participant understood that expected patient volume affected predicted inventory demand. | The test did not separately assess whether the participant could distinguish overall predictor importance from contributions to one prediction. |
-| Create and compare Scenario 1 | Increased the seven-day arrival forecast from 1,285.30 to 1,485.30. Predicted demand increased from 540 to 624 units, a difference of 84 units. | Completed. The prediction moved in the expected direction. | No error reported. |
-| Create and compare Scenario 2 | Decreased the seven-day arrival forecast from 1,285.30 to 1,210.30. Predicted demand decreased from 540 to 508 units, a difference of 31 units. | Completed. The prediction moved in the expected direction. | No error reported. |
-| Explain decision usefulness | Reported that the demand estimates could support hospital inventory planning by showing how expected patient volume changes inventory requirements. | The participant found the side-by-side comparison useful and understandable. | Requested more explicit inventory recommendations. |
-| Identify unclear or missing information | Reported that only one input was editable, which limited the range of operational assumptions that could be tested. | The participant found navigation easy but wanted additional adjustable inputs. | The application needs clearer wording about why some predictors are fixed, derived or external and which operational inputs can reasonably change. |
-
-## Participant feedback
+Tester A explored the deployed application, including the descriptive pages, the predictive models and the what-if analysis, and then gave written feedback. A task-by-task observation record was not captured for this session.
 
 ### Positive findings
 
-1. The application responded consistently when the seven-day arrival forecast increased and decreased.
-2. Predicted demand moved in the expected direction in both scenarios.
-3. The side-by-side comparison clearly showed the baseline, modified scenario and difference.
-4. The participant found the application easy to navigate.
-5. The results provided useful demand estimates for inventory planning.
+1. Focusing on two decisions, predicting demand and identifying possible shortages, was clear and relevant.
+2. The dashboard was well organized; the trend and spending charts helped explain inventory patterns.
+3. Scenario comparison and what-if analysis made the application more useful for decision-making.
 
-### Improvement requests
+### Problems and requests
 
-1. Allow additional reasonable inputs to be adjusted so users can test more operational assumptions.
-2. Provide more explicit recommendations for inventory managers.
+1. **No direct recommendations.** The participant asked for simple recommendations based on the predictions, such as which items need immediate attention and when additional inventory should be ordered.
+2. **Crowded layout.** Some charts and sections looked crowded; better spacing and readability would make the dashboard easier to navigate.
+
+## Tester B
+
+### Task-by-task record
+
+| Rubric task | Participant action or response | Outcome | Error, confusion or missing information |
+|---|---|---|---|
+| Interpret the baseline prediction | Used the displayed baseline of 1,285.30 expected arrivals and 540 predicted units of seven-day demand as the reference for both comparisons. | Treated 540 units as the baseline demand estimate for inventory planning. | No misunderstanding reported. |
+| Identify the main factor contributing to the prediction | Identified the seven-day patient-arrival forecast as the factor changed, while the one-day forecast, current arrivals and units used per arrival stayed fixed. | Understood that expected patient volume affected predicted demand. | The test did not separately assess whether the participant could distinguish overall predictor importance from contributions to one prediction. |
+| Create and compare Scenario 1 | Increased the seven-day arrival forecast from 1,285.30 to 1,485.30. Predicted demand rose from 540 to 624 units (+84). | Completed; the prediction moved in the expected direction. | No error reported. |
+| Create and compare Scenario 2 | Decreased the seven-day arrival forecast from 1,285.30 to 1,210.30. Predicted demand fell from 540 to 508 units (−31). | Completed; the prediction moved in the expected direction. | No error reported. |
+| Explain decision usefulness | Reported that the estimates could support inventory planning by showing how expected patient volume changes requirements. | Found the side-by-side comparison useful and understandable. | Requested more explicit inventory recommendations. |
+| Identify unclear or missing information | Reported that only one input was editable in the demand scenario, limiting the operational assumptions that could be tested. | Found navigation easy but wanted more adjustable inputs. | Needed clearer wording on why some predictors are fixed, derived or external. |
+
+### Positive findings
+
+1. The application responded consistently when the seven-day arrival forecast increased and decreased, in the expected direction both times.
+2. The side-by-side comparison clearly showed the baseline, the modified scenario and the difference.
+3. The application was easy to navigate, and the estimates were useful for inventory planning.
+
+### Problems and requests
+
+1. **Limited editable inputs** in the demand scenario.
+2. **More explicit recommendations** for inventory managers.
+
+## Shared finding
+
+Both testers, independently, asked for **clearer inventory recommendations** rather than predicted values alone. This was the highest-priority change.
 
 ## Changes linked to the findings
 
-- The Predictive Models page includes a **Recommended actions** table that identifies items requiring immediate review, items that may need an order during the week and items requiring no action. Suggested quantities use whole case packs. These remain model-based recommendations that require managerial review.
-- Scenario inputs are labelled as external conditions, fixed observations, item characteristics or derived values. The application locks values that the inventory manager cannot reasonably change or that must remain internally consistent.
-- The shortage what-if model provides an operational planning input through editable closing stock. The demand model keeps units used per arrival and current arrivals fixed because they are item characteristics or observed values, while the external arrival forecast remains editable for planning scenarios.
+| Finding | Tester | Change made |
+|---|---|---|
+| Wanted recommendations on which items need attention and when to order | A and B | The Predictive Models page now opens with a **Recommended actions** table classifying each selected item as *Review now*, *Order this week* or *No action needed*, with a suggested order in whole case packs. It is labelled as a model-based suggestion for managerial review, not an automatic order. |
+| Crowded charts and sections | A | Major sections on the Predictive Models page are separated by dividers, and long evaluation tables are folded into expandable sections while key conclusions stay visible. |
+| Only one editable input; unclear why others are fixed | B | Scenario inputs are labelled as external conditions, fixed observations, item characteristics or derived values, with an explanation of how input checks work. The shortage what-if offers an operational planning input through editable closing stock. Fixed historical values and item characteristics stay locked because the manager cannot change them at prediction time. |
 
-The request for more editable fields was therefore addressed through clearer control labels and the separate shortage scenario rather than by unlocking fixed historical values or item characteristics.
+**Not changed.** A full visual redesign of the other pages, and additional operational controls (open-order timing, lead-time assumptions, safety-stock targets), are future work that should follow requirements from a real ED inventory manager.
 
 ## Overall assessment
 
-Both scenarios passed the functional responsiveness check. The participant concluded that the what-if functionality responded as expected and could support inventory planning. The test supports usability and logical scenario behavior, but it does not establish real-world predictive accuracy.
+Both testers found the what-if analysis useful for decision-making, and Tester B confirmed that demand predictions respond in the expected direction to patient volume. The tests support usability and logical scenario behaviour; they do not establish real-world predictive accuracy, which is evidenced by the held-out 2025 evaluation.
 
 ## Limitations
 
-- The participant was a substitute rather than an ED inventory manager.
-- The test used one participant.
-- Both scenarios evaluated the demand model and changed the same external predictor.
-- The test did not separately assess interpretation of overall predictor importance versus individual prediction contributions.
+- Both participants were substitutes rather than ED inventory managers.
+- Tester A's session has written feedback but no task-by-task observation record.
+- Tester B's two scenarios both evaluated the demand model and changed the same external predictor.
+- Neither test separately assessed interpretation of overall predictor importance versus individual prediction contributions.
 - Synthetic data limit conclusions about real hospital performance.
-- Held-out evaluation results provide the formal predictive-performance evidence; the user test evaluates usefulness and comprehension.

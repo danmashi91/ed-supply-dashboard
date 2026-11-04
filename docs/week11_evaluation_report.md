@@ -91,33 +91,30 @@ Version 3 adds:
 
 ## 7. Structured user testing
 
-**Participant and date.** One adult outside the project group tested the deployed application on November 2, 2026. The participant was a substitute for the intended decision-maker rather than an ED inventory manager. The test used synthetic data and exposed no confidential or patient information.
+**Participants.** Two people outside the project group tested the deployed application independently on November 2, 2026: **Tester A**, a Saint Louis University peer, and **Tester B**, an adult outside the project group. Both are substitutes for the intended decision-maker; neither is an ED inventory manager. Only synthetic data was shown. The full record is in `docs/user_testing_results.md`.
 
-**Tasks and evidence.** The participant interpreted a baseline prediction and tested two plausible demand scenarios while all other inputs remained fixed. The complete anonymized task record appears in `docs/user_testing_results.md`.
+**Tester A** explored all pages and gave written feedback. They found the two-KPI focus clear, the dashboard well organized, the trend and spending charts helpful, and the what-if analysis useful for decisions. They asked for **simple recommendations** (which items need immediate attention, when to order) and found some charts and sections **crowded**. No task-by-task record was captured for this session.
 
-| Task | Baseline or input | Result | Participant interpretation |
+**Tester B** completed demand what-if tasks:
+
+| Task | Input | Result | Participant interpretation |
 |---|---:|---:|---|
-| Baseline | 1,285.30 expected arrivals | 540 predicted units | Reference estimate for seven-day inventory planning |
-| Higher-arrival scenario | 1,485.30 expected arrivals | 624 units, an increase of 84 | More expected patients increased inventory demand |
-| Lower-arrival scenario | 1,210.30 expected arrivals | 508 units, a decrease of 31 | Fewer expected patients reduced inventory demand |
+| Baseline | 1,285.30 expected arrivals | 540 predicted units | Reference estimate for seven-day planning |
+| Higher-arrival scenario | 1,485.30 expected arrivals | 624 units (+84) | More expected patients increased demand |
+| Lower-arrival scenario | 1,210.30 expected arrivals | 508 units (−31) | Fewer expected patients reduced demand |
 | Decision usefulness | Compare forecast conditions | Inventory planning | The side-by-side table made the relationship understandable |
 
-The participant identified the seven-day arrival forecast as the factor changed in the individual scenarios. They reported that the application responded consistently and that predicted demand moved in the expected direction. They found the application easy to navigate and considered the estimates useful for inventory planning.
-
-**Problems and missing information.**
-
-1. **Limited editable inputs.** Only the seven-day arrival forecast was editable in the demand scenario, limiting the range of operational assumptions the participant could test.
-2. **Need for explicit recommendations.** The participant wanted clearer inventory recommendations in addition to predicted values.
+Tester B found the application easy to navigate and the predictions responsive in the expected direction, but noted that **only one input was editable** in the demand scenario and also asked for **more explicit recommendations**.
 
 **Changes made because of the findings.**
 
-1. **Recommended actions.** The Predictive Models page includes a table that classifies selected items as *Review now*, *Order this week* or *No action needed*. Suggested order quantities cover the forecast gap in whole case packs. The table states that these are model-based suggestions for managerial review rather than automatic orders.
-2. **Clearer control roles.** Scenario fields identify external conditions, fixed observations, item characteristics and derived values. The application keeps historical observations and item characteristics locked to prevent internally inconsistent scenarios. The shortage model provides an additional operational planning control through editable closing stock.
-3. **Side-by-side comparison.** The application displays baseline inputs, modified inputs, predicted KPI values and differences together, matching the comparison the participant found useful.
+1. **Recommended actions** (both testers asked for recommendations). The Predictive Models page opens with a table classifying selected items as *Review now*, *Order this week* or *No action needed*, with a suggested order in whole case packs, labelled as model-based suggestions for managerial review rather than automatic orders.
+2. **Less crowded layout** (Tester A). Major sections are separated by dividers, and long evaluation tables are folded into expandable sections while key conclusions stay visible.
+3. **Clearer control roles** (Tester B). Scenario fields are labelled as external conditions, fixed observations, item characteristics or derived values, with an explanation of how input checks work; the shortage what-if offers editable closing stock as an operational planning input.
 
-**Not changed.** Fixed historical values and item characteristics were not unlocked because the inventory manager cannot change them at prediction time. A future version could add reasonable operational controls such as open-order timing, lead-time assumptions or safety-stock targets after obtaining real decision-maker requirements and sufficient training data.
+**Not changed.** Fixed historical values and item characteristics were not unlocked, because the manager cannot change them at prediction time. A full visual redesign and additional operational controls (open-order timing, lead-time assumptions, safety-stock targets) are future work, to follow requirements from a real ED inventory manager.
 
-**Test limitations.** One substitute participant completed the test. Both scenarios evaluated demand and changed the same external predictor. The test did not separately establish whether the participant could distinguish overall importance from contributions to one prediction. Held-out 2025 evaluation provides the evidence for predictive performance; this user test evaluates logical responsiveness, comprehension and perceived usefulness.
+**Test limitations.** Two substitute participants; no task-by-task record for Tester A; Tester B's scenarios changed the same demand predictor; neither test separately assessed interpretation of overall importance versus contributions to one prediction. The held-out 2025 evaluation is the evidence for predictive performance; these tests evaluate usefulness, comprehension and logical scenario behaviour.
 
 ## 8. Remaining limitations and future priorities
 
@@ -130,7 +127,7 @@ The participant identified the seven-day arrival forecast as the factor changed 
 - Local contributions are approximate model sensitivities and may not add exactly because predictors interact.
 - Scenario results are predictive associations, not causal intervention effects.
 - Real data, external-site validation, monitoring for drift, probability recalibration and decision-cost evaluation are required before operational use.
-- User testing so far is one substitute participant; a test with an ED inventory manager and a broader visual redesign are future priorities.
+- User testing so far used two substitute participants; a test with an ED inventory manager and a broader visual redesign are future priorities.
 - Order suggestions in the Recommended actions table cover only next week's expected use; they do not yet include safety stock, lead time or case-pack cost trade-offs.
 
 ## 9. Reproducibility

@@ -59,7 +59,7 @@ The app reads the generated CSV and model files without modifying them. The comm
 
 ## Validation update (Week 11)
 
-**User testing:** one external participant completed two demand what-if scenarios. Raising expected arrivals from 1,285.30 to 1,485.30 increased predicted demand from 540 to 624 units; lowering arrivals to 1,210.30 reduced predicted demand to 508 units. The participant found the comparison understandable and requested more adjustable operational assumptions and clearer recommendations. The application now explains which controls are external, fixed or derived, provides an editable closing-stock control in the shortage scenario, and opens with a **Recommended actions** table. The task record is in `docs/user_testing_results.md` and the evaluation summary is in section 7 of `docs/week11_evaluation_report.md`.
+**User testing:** two external participants (substitutes for an ED inventory manager) tested the app independently. Tester A asked for simple recommendations and found some sections crowded. Tester B ran two demand what-ifs (1,285 → 1,485 expected arrivals: 540 → 624 units; 1,285 → 1,210: 540 → 508 units), found the comparison clear, and asked for more editable inputs and clearer recommendations. Resulting changes: a **Recommended actions** table, a less crowded layout with expandable tables, and clearer labels for which inputs are external, fixed or derived. Records: `docs/user_testing_results.md` and section 7 of `docs/week11_evaluation_report.md`.
 
 The Week 10 submission is preserved as the git tag `week10-submission` (also branch `week10-submission-snapshot`). Version 3 strengthens the evaluation without using the 2025 final test set for model selection:
 
