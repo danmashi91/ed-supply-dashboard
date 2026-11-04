@@ -2,6 +2,7 @@
 - **Live app (revised):** https://ed-supply-dashboard.streamlit.app/ (see the **Predictive Models** page)
 - **Evaluation report:** [docs/week11_evaluation_report.md](docs/week11_evaluation_report.md): evaluation design and leakage checks, model vs. baseline comparison, improvements tried and why the final models were kept, user-testing findings and resulting changes, limitations and future work
 - **User-testing protocol:** [docs/user_testing_protocol.md](docs/user_testing_protocol.md)
+- **Completed user-testing record:** [docs/user_testing_results.md](docs/user_testing_results.md)
 - **Evaluation outputs:** `data/modeling/evaluation_predictions.csv`, `data/modeling/error_analysis.csv`, `models/model_metadata.json`
 - **Setup and dependencies:** see "Reproduce and run" below and `requirements.txt`
 - **Group contributions:** [docs/group_contributions.md](docs/group_contributions.md)
@@ -58,7 +59,7 @@ The app reads the generated CSV and model files without modifying them. The comm
 
 ## Validation update (Week 11)
 
-**User testing:** one external participant (a substitute decision-maker) asked for simple recommendations and a less crowded layout. The Predictive Models page now opens with a **Recommended actions** table (Review now / Order this week / No action needed, with a suggested order size), and long evaluation tables are folded into expandable sections. Details are in section 7 of `docs/week11_evaluation_report.md`.
+**User testing:** two external participants (substitutes for an ED inventory manager) tested the app independently. Tester A asked for simple recommendations and found some sections crowded. Tester B ran two demand what-ifs (1,285 → 1,485 expected arrivals: 540 → 624 units; 1,285 → 1,210: 540 → 508 units), found the comparison clear, and asked for more editable inputs and clearer recommendations. Resulting changes: a **Recommended actions** table, a less crowded layout with expandable tables, and clearer labels for which inputs are external, fixed or derived. Records: `docs/user_testing_results.md` and section 7 of `docs/week11_evaluation_report.md`.
 
 The Week 10 submission is preserved as the git tag `week10-submission` (also branch `week10-submission-snapshot`). Version 3 strengthens the evaluation without using the 2025 final test set for model selection:
 
@@ -99,6 +100,7 @@ All observations and outcomes are synthetic, cover only eight supplies, and repr
 
 - `docs/week11_evaluation_report.md` — evaluation design, leakage audit, model comparisons, error analysis, improvements and limitations.
 - `docs/user_testing_protocol.md` — structured external-user tasks and observation form.
+- `docs/user_testing_results.md` — completed anonymized task record, scenario results, feedback and resulting changes.
 - `data/modeling/evaluation_predictions.csv` — saved 2025 predictions and errors.
 - `data/modeling/error_analysis.csv` — performance by item, surge status, demand band and supplier event.
 - `week10-submission` tag (and `week10-submission-snapshot` branch) — identifiable copy of the Week 10 submission.

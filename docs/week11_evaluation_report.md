@@ -91,30 +91,30 @@ Version 3 adds:
 
 ## 7. Structured user testing
 
-**Participant.** One Saint Louis University peer outside the project group. The participant is a **substitute** for the intended decision-maker: they are not an ED inventory manager and have no hospital supply-chain role. Only synthetic data was shown; no confidential or patient data was involved.
+**Participants.** Two people outside the project group tested the deployed application independently on November 2, 2026: **Tester A**, a Saint Louis University peer, and **Tester B**, an adult outside the project group. Both are substitutes for the intended decision-maker; neither is an ED inventory manager. Only synthetic data was shown. The full record is in `docs/user_testing_results.md`.
 
-**Method and date.** On 2026-11-02 the participant used the deployed application (all pages, including the predictive models and what-if analysis) and then gave written feedback. The protocol in `docs/user_testing_protocol.md` guided the session. A task-by-task observation record (time per task, errors made while interpreting a baseline prediction or its contributions) was **not** captured; this is a limitation of the test.
+**Tester A** explored all pages and gave written feedback. They found the two-KPI focus clear, the dashboard well organized, the trend and spending charts helpful, and the what-if analysis useful for decisions. They asked for **simple recommendations** (which items need immediate attention, when to order) and found some charts and sections **crowded**. No task-by-task record was captured for this session.
 
-**What worked for the participant.**
-- Focusing on two decisions, predicting demand and identifying possible shortages, was clear and relevant.
-- The dashboard was well organized; the trend and spending charts helped explain inventory patterns.
-- Scenario comparison and what-if analysis made the application more useful for decision-making.
+**Tester B** completed demand what-if tasks:
 
-**Problems and missing information.**
-1. **No direct recommendations.** The participant wanted simple guidance based on the predictions: *which items need immediate attention* and *when additional inventory should be ordered*. The application showed probabilities and forecasts but left the user to turn them into an action.
-2. **Crowded layout.** Some charts and sections looked crowded; better spacing and readability would make navigation easier.
+| Task | Input | Result | Participant interpretation |
+|---|---:|---:|---|
+| Baseline | 1,285.30 expected arrivals | 540 predicted units | Reference estimate for seven-day planning |
+| Higher-arrival scenario | 1,485.30 expected arrivals | 624 units (+84) | More expected patients increased demand |
+| Lower-arrival scenario | 1,210.30 expected arrivals | 508 units (−31) | Fewer expected patients reduced demand |
+| Decision usefulness | Compare forecast conditions | Inventory planning | The side-by-side table made the relationship understandable |
 
-**Changes made because of the test.**
-1. **Recommended actions table (addresses problem 1).** The Predictive Models page now opens with a review date and a table for every selected item, sorted by urgency:
-   - 🔴 *Review now*: shortage probability at or above the screening threshold;
-   - 🟠 *Order this week*: expected use over the next seven days exceeds stock on hand plus open orders; a suggested order covers the gap, rounded up to whole case packs;
-   - 🟢 *No action needed*.
-   Counts of each category are shown at the top. The caption states how each recommendation is produced and that these are model-based suggestions for the manager to check, not automatic orders (about 1 in 10 review flags was followed by a real shortage in 2025, and the order suggestion does not add safety stock or lead-time cover).
-2. **Less crowded layout (addresses problem 2).** Major sections on the Predictive Models page are separated by dividers, and the long evaluation tables (version comparison, full error table) are folded into expandable sections, while the key conclusions and warnings stay visible.
+Tester B found the application easy to navigate and the predictions responsive in the expected direction, but noted that **only one input was editable** in the demand scenario and also asked for **more explicit recommendations**.
 
-**Not changed.** A full visual redesign of the other pages was not attempted before submission; it is listed under future work.
+**Changes made because of the findings.**
 
-**Limitations of this test.** One participant; a substitute rather than an ED inventory manager; written feedback rather than a full observed task record. A follow-up test with a hospital supply-chain professional, recording each protocol task, is a priority.
+1. **Recommended actions** (both testers asked for recommendations). The Predictive Models page opens with a table classifying selected items as *Review now*, *Order this week* or *No action needed*, with a suggested order in whole case packs, labelled as model-based suggestions for managerial review rather than automatic orders.
+2. **Less crowded layout** (Tester A). Major sections are separated by dividers, and long evaluation tables are folded into expandable sections while key conclusions stay visible.
+3. **Clearer control roles** (Tester B). Scenario fields are labelled as external conditions, fixed observations, item characteristics or derived values, with an explanation of how input checks work; the shortage what-if offers editable closing stock as an operational planning input.
+
+**Not changed.** Fixed historical values and item characteristics were not unlocked, because the manager cannot change them at prediction time. A full visual redesign and additional operational controls (open-order timing, lead-time assumptions, safety-stock targets) are future work, to follow requirements from a real ED inventory manager.
+
+**Test limitations.** Two substitute participants; no task-by-task record for Tester A; Tester B's scenarios changed the same demand predictor; neither test separately assessed interpretation of overall importance versus contributions to one prediction. The held-out 2025 evaluation is the evidence for predictive performance; these tests evaluate usefulness, comprehension and logical scenario behaviour.
 
 ## 8. Remaining limitations and future priorities
 
@@ -127,7 +127,7 @@ Version 3 adds:
 - Local contributions are approximate model sensitivities and may not add exactly because predictors interact.
 - Scenario results are predictive associations, not causal intervention effects.
 - Real data, external-site validation, monitoring for drift, probability recalibration and decision-cost evaluation are required before operational use.
-- User testing so far is one substitute participant; a test with an ED inventory manager and a broader visual redesign are future priorities.
+- User testing so far used two substitute participants; a test with an ED inventory manager and a broader visual redesign are future priorities.
 - Order suggestions in the Recommended actions table cover only next week's expected use; they do not yet include safety stock, lead time or case-pack cost trade-offs.
 
 ## 9. Reproducibility
