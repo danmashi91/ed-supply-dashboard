@@ -1,5 +1,9 @@
 # Group Member Contributions
 
+## Weeks 12-13 revision (15 Nov 2026)
+
+Added after review of the first validation package: decision-support requirements, automated app tests and reconciliations (TEST-15, 21-26), baseline and sensitivity analyses (TEST-27-30), benchmark comparison, screenshots, validation README, the Round 2 user-test protocol, and updates to the matrix, memo and evidence index. These additions were prepared with AI assistance (Claude) and must be reviewed, run and attributed by the group members. Each member should replace this note with the specific items they ran, checked or authored.
+
 ## Weeks 12-13: application validation and evidence
 
 ### Monica Hall

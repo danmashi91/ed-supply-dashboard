@@ -1,0 +1,76 @@
+case,page,item,independent,displayed,match
+N1,Overview,Total ED arrivals,141638.0,141638.0,True
+N1,Overview,Average daily arrivals,193.7592,193.8,True
+N1,Overview,Arrival forecast WAPE,9.3516,9.35,True
+N1,Overview,Surge days,50.0,50.0,True
+N1,Overview,Fill rate,99.8782,99.88,True
+N1,Overview,Backorder days,19.0,19.0,True
+N1,Overview,High-risk item-days,223.0,223.0,True
+N1,Overview,Order spend,602548.6,602549.0,True
+N1,item_explorer,active population caption,731/5848,"[731, 8, 8, 5848]",True
+N1,Item Explorer,Avg daily demand (IVKIT),81.4,81.4,True
+N1,Item Explorer,High-risk days (IVKIT),35.0,35.0,True
+N1,Item Explorer,Supplier disruptions (IVKIT),28.0,28.0,True
+N1,Item Explorer,Order spend (IVKIT),229641.6,229642.0,True
+N1,trends,active population caption,731/5848,"[731, 8, 8, 5848]",True
+N1,scenarios,active population caption,731/5848,"[731, 8, 8, 5848]",True
+N1,data,active population caption,731/5848,"[731, 8, 8, 5848]",True
+N1,predictive,active population caption,731/5848,"[731, 8, 8, 5848]",True
+N2,Overview,Total ED arrivals,6130.0,6130.0,True
+N2,Overview,Average daily arrivals,197.7419,197.7,True
+N2,Overview,Arrival forecast WAPE,8.584,8.58,True
+N2,Overview,Surge days,0.0,0.0,True
+N2,Overview,Fill rate,100.0,100.0,True
+N2,Overview,Backorder days,0.0,0.0,True
+N2,Overview,High-risk item-days,4.0,4.0,True
+N2,Overview,Order spend,3560.5,3560.0,True
+N2,item_explorer,active population caption,31/62,"[31, 2, 8, 62]",True
+N2,Item Explorer,Avg daily demand (GAUZE),226.81,226.8,True
+N2,Item Explorer,High-risk days (GAUZE),2.0,2.0,True
+N2,Item Explorer,Supplier disruptions (GAUZE),1.0,1.0,True
+N2,Item Explorer,Order spend (GAUZE),2584.0,2584.0,True
+N2,trends,active population caption,31/62,"[31, 2, 8, 62]",True
+N2,scenarios,active population caption,31/62,"[31, 2, 8, 62]",True
+N2,data,active population caption,31/62,"[31, 2, 8, 62]",True
+N2,predictive,active population caption,31/62,"[31, 2, 8, 62]",True
+B1,Overview,Total ED arrivals,154.0,154.0,True
+B1,Overview,Average daily arrivals,154.0,154.0,True
+B1,Overview,Arrival forecast WAPE,0.0,0.0,True
+B1,Overview,Surge days,0.0,0.0,True
+B1,Overview,Fill rate,100.0,100.0,True
+B1,Overview,Backorder days,0.0,0.0,True
+B1,Overview,High-risk item-days,0.0,0.0,True
+B1,Overview,Order spend,0.0,0.0,True
+B1,item_explorer,active population caption,1/8,"[1, 8, 8, 8]",True
+B1,Item Explorer,Avg daily demand (IVKIT),67.0,67.0,True
+B1,Item Explorer,High-risk days (IVKIT),0.0,0.0,True
+B1,Item Explorer,Supplier disruptions (IVKIT),0.0,0.0,True
+B1,Item Explorer,Order spend (IVKIT),0.0,0.0,True
+B1,trends,active population caption,1/8,"[1, 8, 8, 8]",True
+B1,scenarios,active population caption,1/8,"[1, 8, 8, 8]",True
+B1,data,active population caption,1/8,"[1, 8, 8, 8]",True
+B1,predictive,active population caption,1/8,"[1, 8, 8, 8]",True
+B2,Overview,Total ED arrivals,202.0,202.0,True
+B2,Overview,Average daily arrivals,202.0,202.0,True
+B2,Overview,Arrival forecast WAPE,10.495,10.5,True
+B2,Overview,Surge days,0.0,0.0,True
+B2,Overview,Fill rate,100.0,100.0,True
+B2,Overview,Backorder days,0.0,0.0,True
+B2,Overview,High-risk item-days,0.0,0.0,True
+B2,Overview,Order spend,0.0,0.0,True
+B3,Overview,Total ED arrivals,5972.0,5972.0,True
+B3,Overview,Average daily arrivals,199.0667,199.1,True
+B3,Overview,Arrival forecast WAPE,6.9324,6.93,True
+B3,Overview,Surge days,0.0,0.0,True
+B3,Overview,Fill rate,100.0,100.0,True
+B3,Overview,Backorder days,0.0,0.0,True
+B3,Overview,High-risk item-days,30.0,30.0,True
+B3,Overview,Order spend,10305.6,10306.0,True
+B4,Overview,Total ED arrivals,5972.0,5972.0,True
+B4,Overview,Average daily arrivals,199.0667,199.1,True
+B4,Overview,Arrival forecast WAPE,6.9324,6.93,True
+B4,Overview,Surge days,0.0,0.0,True
+B4,Overview,Fill rate,100.0,100.0,True
+B4,Overview,Backorder days,0.0,0.0,True
+B4,Overview,High-risk item-days,0.0,0.0,True
+B4,Overview,Order spend,10305.6,10306.0,True

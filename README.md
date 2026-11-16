@@ -12,7 +12,13 @@
 - **Twelve-minute validation-matrix walkthrough:** *link to be added after recording*
 - **Previous submission preserved:** tag [`week10-submission`](https://github.com/danmashi91/ed-supply-dashboard/releases/tag/week10-submission) and branch `week10-submission-snapshot`
 
-The validation conclusion is intentionally limited: version 3.1 is suitable for a classroom demonstration, but not yet for a controlled hospital pilot or operational purchasing. The evidence folder explains the remaining synthetic-data, user-testing and operational-control gaps.
+- **Decision-support requirements:** [docs/decision_support_requirements.md](docs/decision_support_requirements.md)
+- **Repeat the validation tests:** [validation/README.md](validation/README.md) (scripts in `validation/tests/`, outputs in `evidence/outputs/`, screenshots in `evidence/screenshots/`)
+- **Independent benchmark comparison:** [docs/synthetic_data_benchmarks.md](docs/synthetic_data_benchmarks.md)
+- **Round 2 user-test protocol (not yet run):** [docs/user_testing_round2_protocol.md](docs/user_testing_round2_protocol.md)
+- **Changes made in response to validation findings:** [docs/validation_changes.md](docs/validation_changes.md)
+
+The validation conclusion is intentionally limited: version 3.1 is suitable for a classroom demonstration, but not yet for a controlled hospital pilot or operational purchasing. The matrix has 33 tests (23 pass, 8 partial, 1 fail, 1 not tested). The failed test is shortage-model sensitivity: the ROC-AUC of 0.919 reported below fell to 0.67-0.80 under a different seed or alternative generator settings, so treat the shortage score as a demonstration of the review-queue idea. A persistence baseline also beats the demand formula on surge days. The evidence folder explains the remaining synthetic-data, user-testing and operational-control gaps.
 
 ## Week 11 deliverables
 - **Live app (revised):** https://ed-supply-dashboard.streamlit.app/ (see the **Predictive Models** page)

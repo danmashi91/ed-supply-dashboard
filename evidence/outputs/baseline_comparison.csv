@@ -1,0 +1,28 @@
+kpi,method,metric,value
+7-day demand,Persistence baseline (previous 7 days' demand),WAPE all test days,0.0454
+7-day demand,Persistence baseline (previous 7 days' demand),WAPE surge days,0.1027
+7-day demand,Persistence baseline (previous 7 days' demand),MAE units,69.24
+7-day demand,Persistence baseline (previous 7 days' demand),"mean signed error on surge days (negative = under-prediction), units",-17.5
+7-day demand,Retained arrival formula,WAPE all test days,0.0379
+7-day demand,Retained arrival formula,WAPE surge days,0.1112
+7-day demand,Retained arrival formula,MAE units,57.77
+7-day demand,Retained arrival formula,"mean signed error on surge days (negative = under-prediction), units",-167.4
+7-day shortage,Constant rate (2024 prevalence),ROC-AUC,0.5
+7-day shortage,Constant rate (2024 prevalence),average precision,0.0084
+7-day shortage,Constant rate (2024 prevalence),recall when flagging the top 5.06% of item-days,0.0
+7-day shortage,Constant rate (2024 prevalence),precision when flagging the top 5.06% of item-days,0.0
+7-day shortage,Rank by fewest days of supply,ROC-AUC,0.5683
+7-day shortage,Rank by fewest days of supply,average precision,0.0247
+7-day shortage,Rank by fewest days of supply,recall when flagging the top 5.06% of item-days,0.125
+7-day shortage,Rank by fewest days of supply,precision when flagging the top 5.06% of item-days,0.0207
+7-day shortage,Rank by descriptive stockout_risk_proxy,ROC-AUC,0.5589
+7-day shortage,Rank by descriptive stockout_risk_proxy,average precision,0.0167
+7-day shortage,Rank by descriptive stockout_risk_proxy,recall when flagging the top 5.06% of item-days,0.0833
+7-day shortage,Rank by descriptive stockout_risk_proxy,precision when flagging the top 5.06% of item-days,0.0138
+7-day shortage,Retained shortage model (calibrated logistic regression),ROC-AUC,0.9193
+7-day shortage,Retained shortage model (calibrated logistic regression),average precision,0.2518
+7-day shortage,Retained shortage model (calibrated logistic regression),recall when flagging the top 5.06% of item-days,0.5833
+7-day shortage,Retained shortage model (calibrated logistic regression),precision when flagging the top 5.06% of item-days,0.0966
+7-day shortage,Rule: days of supply < lead time,share of item-days flagged,0.0
+7-day shortage,Rule: days of supply < lead time,recall,0.0
+7-day shortage,Rule: days of supply < lead time,precision,0.0

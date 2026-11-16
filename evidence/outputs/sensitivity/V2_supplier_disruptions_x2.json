@@ -1,0 +1,18 @@
+{
+  "variant": "V2_supplier_disruptions_x2",
+  "description": "Supplier delay and short-ship probabilities doubled (P_DELAY 0.16, P_SHORT 0.10)",
+  "runtime_s": 392,
+  "demand_retained": "Simple formula: 7-day arrival forecast \u00d7 units per arrival (",
+  "demand_test_wape": 0.0379,
+  "naive_persistence_wape": 0.0454,
+  "demand_direction_violation": 0.0,
+  "shortage_positive_test_rows": 113,
+  "shortage_observed_rate": 0.0395,
+  "shortage_roc_auc": 0.797,
+  "shortage_avg_precision": 0.1564,
+  "constant_baseline_ap": 0.0395,
+  "shortage_precision": 0.2857,
+  "shortage_recall": 0.0177,
+  "shortage_alert_share": 0.0024,
+  "shortage_threshold": 0.2678
+}

@@ -1,0 +1,18 @@
+{
+  "variant": "V3_stronger_surges",
+  "description": "10 surge episodes (was 6) with lift 1.30-1.60 (was 1.18-1.38)",
+  "runtime_s": 404,
+  "demand_retained": "Simple formula: 7-day arrival forecast \u00d7 units per arrival (",
+  "demand_test_wape": 0.0472,
+  "naive_persistence_wape": 0.0582,
+  "demand_direction_violation": 0.0,
+  "shortage_positive_test_rows": 22,
+  "shortage_observed_rate": 0.0077,
+  "shortage_roc_auc": 0.7728,
+  "shortage_avg_precision": 0.1313,
+  "constant_baseline_ap": 0.0077,
+  "shortage_precision": 0.0433,
+  "shortage_recall": 0.5,
+  "shortage_alert_share": 0.0887,
+  "shortage_threshold": 0.0334
+}

@@ -1,0 +1,18 @@
+{
+  "variant": "V4_lower_volume",
+  "description": "Baseline arrivals 150/day instead of 185/day",
+  "runtime_s": 406,
+  "demand_retained": "Simple formula: 7-day arrival forecast \u00d7 units per arrival (",
+  "demand_test_wape": 0.0404,
+  "naive_persistence_wape": 0.0492,
+  "demand_direction_violation": 0.0,
+  "shortage_positive_test_rows": 36,
+  "shortage_observed_rate": 0.0126,
+  "shortage_roc_auc": 0.6898,
+  "shortage_avg_precision": 0.1087,
+  "constant_baseline_ap": 0.0126,
+  "shortage_precision": 0.0127,
+  "shortage_recall": 1.0,
+  "shortage_alert_share": 0.993,
+  "shortage_threshold": 0.003
+}

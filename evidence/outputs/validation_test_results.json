@@ -1,0 +1,1090 @@
+[
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Total ED arrivals' [normal: full range, all items, threshold 0.50]",
+  "expected": "141638.0000",
+  "observed": "141638.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Average daily arrivals' [normal: full range, all items, threshold 0.50]",
+  "expected": "193.7592",
+  "observed": "193.8",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Arrival forecast WAPE' [normal: full range, all items, threshold 0.50]",
+  "expected": "9.3516",
+  "observed": "9.35",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Surge days' [normal: full range, all items, threshold 0.50]",
+  "expected": "50.0000",
+  "observed": "50.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Fill rate' [normal: full range, all items, threshold 0.50]",
+  "expected": "99.8782",
+  "observed": "99.88",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Backorder days' [normal: full range, all items, threshold 0.50]",
+  "expected": "19.0000",
+  "observed": "19.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'High-risk item-days' [normal: full range, all items, threshold 0.50]",
+  "expected": "223.0000",
+  "observed": "223.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Overview KPI 'Order spend' [normal: full range, all items, threshold 0.50]",
+  "expected": "602548.6000",
+  "observed": "602549.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 no exceptions on Overview",
+  "expected": "0",
+  "observed": "0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 active-population caption [normal: full range, all items, threshold 0.50]",
+  "expected": "731 days, 8 items, 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 same filter population on item_explorer",
+  "expected": "731 days / 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Item Explorer 'Avg daily demand' (IVKIT)",
+  "expected": "81.40",
+  "observed": "81.4",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Item Explorer 'High-risk days' (IVKIT)",
+  "expected": "35.00",
+  "observed": "35.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Item Explorer 'Supplier disruptions' (IVKIT)",
+  "expected": "28.00",
+  "observed": "28.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Item Explorer 'Order spend' (IVKIT)",
+  "expected": "229641.60",
+  "observed": "229642.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 same filter population on trends",
+  "expected": "731 days / 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 same filter population on scenarios",
+  "expected": "731 days / 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 same filter population on data",
+  "expected": "731 days / 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 Data page download row count",
+  "expected": "5,848 rows match",
+  "observed": "5,848 rows match the current filters.",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N1 same filter population on predictive",
+  "expected": "731 days / 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Total ED arrivals' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "6130.0000",
+  "observed": "6130.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Average daily arrivals' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "197.7419",
+  "observed": "197.7",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Arrival forecast WAPE' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "8.5840",
+  "observed": "8.58",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Surge days' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Fill rate' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "100.0000",
+  "observed": "100.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Backorder days' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'High-risk item-days' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "4.0000",
+  "observed": "4.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Overview KPI 'Order spend' [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "3560.5000",
+  "observed": "3560.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 no exceptions on Overview",
+  "expected": "0",
+  "observed": "0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 active-population caption [normal: Mar 2025, GAUZE+MASK, threshold 0.30]",
+  "expected": "31 days, 2 items, 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 same filter population on item_explorer",
+  "expected": "31 days / 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Item Explorer 'Avg daily demand' (GAUZE)",
+  "expected": "226.81",
+  "observed": "226.8",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Item Explorer 'High-risk days' (GAUZE)",
+  "expected": "2.00",
+  "observed": "2.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Item Explorer 'Supplier disruptions' (GAUZE)",
+  "expected": "1.00",
+  "observed": "1.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Item Explorer 'Order spend' (GAUZE)",
+  "expected": "2584.00",
+  "observed": "2584.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 same filter population on trends",
+  "expected": "31 days / 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 same filter population on scenarios",
+  "expected": "31 days / 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 same filter population on data",
+  "expected": "31 days / 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 Data page download row count",
+  "expected": "62 rows match",
+  "observed": "62 rows match the current filters.",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "N2 same filter population on predictive",
+  "expected": "31 days / 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Total ED arrivals' [boundary: single first day 2024-01-01]",
+  "expected": "154.0000",
+  "observed": "154.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Average daily arrivals' [boundary: single first day 2024-01-01]",
+  "expected": "154.0000",
+  "observed": "154.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Arrival forecast WAPE' [boundary: single first day 2024-01-01]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Surge days' [boundary: single first day 2024-01-01]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Fill rate' [boundary: single first day 2024-01-01]",
+  "expected": "100.0000",
+  "observed": "100.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Backorder days' [boundary: single first day 2024-01-01]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'High-risk item-days' [boundary: single first day 2024-01-01]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Overview KPI 'Order spend' [boundary: single first day 2024-01-01]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 no exceptions on Overview",
+  "expected": "0",
+  "observed": "0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 active-population caption [boundary: single first day 2024-01-01]",
+  "expected": "1 days, 8 items, 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 same filter population on item_explorer",
+  "expected": "1 days / 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Item Explorer 'Avg daily demand' (IVKIT)",
+  "expected": "67.00",
+  "observed": "67.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Item Explorer 'High-risk days' (IVKIT)",
+  "expected": "0.00",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Item Explorer 'Supplier disruptions' (IVKIT)",
+  "expected": "0.00",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Item Explorer 'Order spend' (IVKIT)",
+  "expected": "0.00",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 same filter population on trends",
+  "expected": "1 days / 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 same filter population on scenarios",
+  "expected": "1 days / 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 same filter population on data",
+  "expected": "1 days / 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 Data page download row count",
+  "expected": "8 rows match",
+  "observed": "8 rows match the current filters.",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 same filter population on predictive",
+  "expected": "1 days / 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Total ED arrivals' [boundary: single last day 2025-12-31]",
+  "expected": "202.0000",
+  "observed": "202.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Average daily arrivals' [boundary: single last day 2025-12-31]",
+  "expected": "202.0000",
+  "observed": "202.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Arrival forecast WAPE' [boundary: single last day 2025-12-31]",
+  "expected": "10.4950",
+  "observed": "10.5",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Surge days' [boundary: single last day 2025-12-31]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Fill rate' [boundary: single last day 2025-12-31]",
+  "expected": "100.0000",
+  "observed": "100.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Backorder days' [boundary: single last day 2025-12-31]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'High-risk item-days' [boundary: single last day 2025-12-31]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 Overview KPI 'Order spend' [boundary: single last day 2025-12-31]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 no exceptions on Overview",
+  "expected": "0",
+  "observed": "0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B2 active-population caption [boundary: single last day 2025-12-31]",
+  "expected": "1 days, 8 items, 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Total ED arrivals' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "5972.0000",
+  "observed": "5972.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Average daily arrivals' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "199.0667",
+  "observed": "199.1",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Arrival forecast WAPE' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "6.9324",
+  "observed": "6.93",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Surge days' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Fill rate' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "100.0000",
+  "observed": "100.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Backorder days' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'High-risk item-days' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "30.0000",
+  "observed": "30.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 Overview KPI 'Order spend' [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "10305.6000",
+  "observed": "10306.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 no exceptions on Overview",
+  "expected": "0",
+  "observed": "0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B3 active-population caption [boundary: threshold 0.00 (every item-day high-risk)]",
+  "expected": "30 days, 1 items, 30 rows",
+  "observed": "[30, 1, 8, 30]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Total ED arrivals' [boundary: threshold 1.00]",
+  "expected": "5972.0000",
+  "observed": "5972.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Average daily arrivals' [boundary: threshold 1.00]",
+  "expected": "199.0667",
+  "observed": "199.1",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Arrival forecast WAPE' [boundary: threshold 1.00]",
+  "expected": "6.9324",
+  "observed": "6.93",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Surge days' [boundary: threshold 1.00]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Fill rate' [boundary: threshold 1.00]",
+  "expected": "100.0000",
+  "observed": "100.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Backorder days' [boundary: threshold 1.00]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'High-risk item-days' [boundary: threshold 1.00]",
+  "expected": "0.0000",
+  "observed": "0.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 Overview KPI 'Order spend' [boundary: threshold 1.00]",
+  "expected": "10305.6000",
+  "observed": "10306.0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 no exceptions on Overview",
+  "expected": "0",
+  "observed": "0",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B4 active-population caption [boundary: threshold 1.00]",
+  "expected": "30 days, 1 items, 30 rows",
+  "observed": "[30, 1, 8, 30]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-25",
+  "case": "Overview with no items selected: item KPIs show an em dash instead of a number",
+  "expected": "\u2014 for 4 item KPIs",
+  "observed": "{'Fill rate': '\u2014', 'Backorder days': '\u2014', 'High-risk item-days': '\u2014', 'Order spend': '\u2014'}",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-25",
+  "case": "Overview with no items selected: arrival KPIs still correct",
+  "expected": "141,638 arrivals",
+  "observed": "141,638",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-25",
+  "case": "Incomplete date range: warning shown and dashboard withheld",
+  "expected": "warning + no KPI cards",
+  "observed": "{'warnings': ['Pick an end date to complete the date range.'], 'kpi_cards': 0}",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-25",
+  "case": "Scenario Comparison with no items: explanatory message, no table",
+  "expected": "message",
+  "observed": "['No items match the current filters. Select at least one category and item in the sidebar.']",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-25",
+  "case": "Predictive page for dates after 2025-12-24 (no model rows): explains why nothing is shown",
+  "expected": "no-model-rows message",
+  "observed": "['No model rows match the sidebar filters. Model rows end on 2025-12-24.']",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "N: displayed low/base/high rows equal scenario_comparison.csv (GAUZE, 2025-07-15)",
+  "expected": "exact (display rounding)",
+  "observed": "match",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "N: demand rises and days-of-supply falls from low to high",
+  "expected": "monotonic",
+  "observed": "True",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "N: physical stock identical across scenarios (caption claim)",
+  "expected": "1 distinct inventory position",
+  "observed": "1",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "B-first: displayed low/base/high rows equal scenario_comparison.csv (IVKIT, 2024-01-01)",
+  "expected": "exact (display rounding)",
+  "observed": "match",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "B-first: demand rises and days-of-supply falls from low to high",
+  "expected": "monotonic",
+  "observed": "True",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "B-first: physical stock identical across scenarios (caption claim)",
+  "expected": "1 distinct inventory position",
+  "observed": "1",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "B-last: displayed low/base/high rows equal scenario_comparison.csv (GLOVEM, 2025-12-31)",
+  "expected": "exact (display rounding)",
+  "observed": "match",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "B-last: demand rises and days-of-supply falls from low to high",
+  "expected": "monotonic",
+  "observed": "True",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-21",
+  "case": "B-last: physical stock identical across scenarios (caption claim)",
+  "expected": "1 distinct inventory position",
+  "observed": "1",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-22",
+  "case": "N (2025-06-10): all 8 items: category, whole-case order quantity and probability match independent calc",
+  "expected": "0 mismatches",
+  "observed": "0 mismatches []",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-22",
+  "case": "B-first model date (2025-01-01): all 8 items: category, whole-case order quantity and probability match independent calc",
+  "expected": "0 mismatches",
+  "observed": "0 mismatches []",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-22",
+  "case": "B-last model date (2025-12-24): all 8 items: category, whole-case order quantity and probability match independent calc",
+  "expected": "0 mismatches",
+  "observed": "0 mismatches []",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-02",
+  "case": "demand what-if normal-high: 7-day forecast 1285.3 -> 1485.3; independent 539.826 -> 623.826 units",
+  "expected": "540 -> 624",
+  "observed": "540 units -> 624 units (+84 units)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "demand summary figures match independent calculation (normal-high)",
+  "expected": "540 -> 624",
+  "observed": "moved from 540 to 624 units (+84 units, +15.6%)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "demand summary (normal-high): limitation language present, no causal wording",
+  "expected": "hedge present; 0 causal terms",
+  "observed": "hedge=True; causal terms=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-02",
+  "case": "demand what-if normal-low: 7-day forecast 1285.3 -> 1210.3; independent 539.826 -> 508.326 units",
+  "expected": "540 -> 508",
+  "observed": "540 units -> 508 units (-31 units)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "demand summary figures match independent calculation (normal-low)",
+  "expected": "540 -> 508",
+  "observed": "moved from 540 to 508 units (-31 units, -5.8%)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "demand summary (normal-low): limitation language present, no causal wording",
+  "expected": "hedge present; 0 causal terms",
+  "observed": "hedge=True; causal terms=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-23",
+  "case": "demand what-if boundary-max: 7-day forecast 1285.3 -> 1495.6; independent 539.826 -> 628.152 units",
+  "expected": "540 -> 628",
+  "observed": "540 units -> 628 units (+88 units)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "demand summary figures match independent calculation (boundary-max)",
+  "expected": "540 -> 628",
+  "observed": "moved from 540 to 628 units (+88 units, +16.4%)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "demand summary (boundary-max): limitation language present, no causal wording",
+  "expected": "hedge present; 0 causal terms",
+  "observed": "hedge=True; causal terms=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-23",
+  "case": "demand what-if boundary-min: 7-day forecast 1285.3 -> 1078.0; independent 539.826 -> 452.760 units",
+  "expected": "540 -> 453",
+  "observed": "540 units -> 453 units (-87 units)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "demand summary figures match independent calculation (boundary-min)",
+  "expected": "540 -> 453",
+  "observed": "moved from 540 to 453 units (-87 units, -16.1%)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "demand summary (boundary-min): limitation language present, no causal wording",
+  "expected": "hedge present; 0 causal terms",
+  "observed": "hedge=True; causal terms=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-06",
+  "case": "demand invalid-high-ratio (2024-01-13, 7d=1495.6, 1d forecast=142.0, ratio=1.50): error shown, NO prediction, NO summary",
+  "expected": "error + 'No scenario prediction was produced'",
+  "observed": "errors=1, comparison_table=False, summary=False; msg=The seven-day arrival forecast (1,496) is 1.50\u00d7 seven times tomorrow's forecast (142 \u00d7 7 = 994). That is outside the plausible band (0.75\u20131.",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-06",
+  "case": "demand invalid-low-ratio (2025-01-28, 7d=1078.0, 1d forecast=208.8, ratio=0.74): error shown, NO prediction, NO summary",
+  "expected": "error + 'No scenario prediction was produced'",
+  "observed": "errors=1, comparison_table=False, summary=False; msg=The seven-day arrival forecast (1,078) is 0.74\u00d7 seven times tomorrow's forecast (209 \u00d7 7 = 1,462). That is outside the plausible band (0.75\u2013",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-06",
+  "case": "ratio rule boundary: exactly 0.75x (limits 0.75-1.4)",
+  "expected": "accepted",
+  "observed": "accepted",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-06",
+  "case": "ratio rule boundary: exactly 1.40x (limits 0.75-1.4)",
+  "expected": "accepted",
+  "observed": "accepted",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-06",
+  "case": "ratio rule boundary: just below 0.75x (limits 0.75-1.4)",
+  "expected": "rejected",
+  "observed": "rejected",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-06",
+  "case": "ratio rule boundary: just above 1.40x (limits 0.75-1.4)",
+  "expected": "rejected",
+  "observed": "rejected",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-23",
+  "case": "shortage what-if normal-lower-stock: closing stock 1284 -> 642; baseline equals saved evaluation prediction and direction is right",
+  "expected": "baseline 1.4%; lower stock => not lower risk",
+  "observed": "1.4% -> 2.7% (+1.3 pts)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "shortage summary figures equal side-by-side table (normal-lower-stock)",
+  "expected": "1.4% -> 2.7%",
+  "observed": "moved from 1.4% to 2.7% (+1.3 percentage points)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "shortage summary (normal-lower-stock): limitation + trade-off language, no causal wording",
+  "expected": "hedge + trade-offs; 0 causal terms",
+  "observed": "hedge=True; trade-offs=True; causal=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-23",
+  "case": "shortage what-if boundary-min-stock: closing stock 1284 -> 0; baseline equals saved evaluation prediction and direction is right",
+  "expected": "baseline 1.4%; lower stock => not lower risk",
+  "observed": "1.4% -> 7.8% (+6.4 pts)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "shortage summary figures equal side-by-side table (boundary-min-stock)",
+  "expected": "1.4% -> 7.8%",
+  "observed": "moved from 1.4% to 7.8% (+6.4 percentage points)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "shortage summary (boundary-min-stock): limitation + trade-off language, no causal wording",
+  "expected": "hedge + trade-offs; 0 causal terms",
+  "observed": "hedge=True; trade-offs=True; causal=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-23",
+  "case": "shortage what-if boundary-max-stock: closing stock 1284 -> 1624; baseline equals saved evaluation prediction and direction is right",
+  "expected": "baseline 1.4%; lower stock => not lower risk",
+  "observed": "1.4% -> 1.2% (-0.2 pts)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-14",
+  "case": "shortage summary figures equal side-by-side table (boundary-max-stock)",
+  "expected": "1.4% -> 1.2%",
+  "observed": "moved from 1.4% to 1.2% (-0.2 percentage points)",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-24",
+  "case": "shortage summary (boundary-max-stock): limitation + trade-off language, no causal wording",
+  "expected": "hedge + trade-offs; 0 causal terms",
+  "observed": "hedge=True; trade-offs=True; causal=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-26",
+  "case": "Seven-day item demand: page displays required limitation and uncertainty statements",
+  "expected": "all 6 phrases present",
+  "observed": "missing=[]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-26",
+  "case": "Seven-day shortage probability: page displays required limitation and uncertainty statements",
+  "expected": "all 7 phrases present",
+  "observed": "missing=[]",
+  "status": "PASS",
+  "note": ""
+ }
+]

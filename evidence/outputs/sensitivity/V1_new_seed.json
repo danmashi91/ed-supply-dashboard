@@ -1,0 +1,18 @@
+{
+  "variant": "V1_new_seed",
+  "description": "Different random seed (20261010)",
+  "runtime_s": 384,
+  "demand_retained": "Simple formula: 7-day arrival forecast \u00d7 units per arrival (",
+  "demand_test_wape": 0.0569,
+  "naive_persistence_wape": 0.0686,
+  "demand_direction_violation": 0.0,
+  "shortage_positive_test_rows": 37,
+  "shortage_observed_rate": 0.0129,
+  "shortage_roc_auc": 0.6648,
+  "shortage_avg_precision": 0.0514,
+  "constant_baseline_ap": 0.0129,
+  "shortage_precision": 0.0741,
+  "shortage_recall": 0.1081,
+  "shortage_alert_share": 0.0189,
+  "shortage_threshold": 0.1835
+}

@@ -1,0 +1,193 @@
+2026-11-15 21:27:30.029 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N1 Overview KPI 'Total ED arrivals' [normal: full range, all items, threshold 0.50] | exp=141638.0000 | obs=141638.0
+PASS TEST-15 | N1 Overview KPI 'Average daily arrivals' [normal: full range, all items, threshold 0.50] | exp=193.7592 | obs=193.8
+PASS TEST-15 | N1 Overview KPI 'Arrival forecast WAPE' [normal: full range, all items, threshold 0.50] | exp=9.3516 | obs=9.35
+PASS TEST-15 | N1 Overview KPI 'Surge days' [normal: full range, all items, threshold 0.50] | exp=50.0000 | obs=50.0
+PASS TEST-15 | N1 Overview KPI 'Fill rate' [normal: full range, all items, threshold 0.50] | exp=99.8782 | obs=99.88
+PASS TEST-15 | N1 Overview KPI 'Backorder days' [normal: full range, all items, threshold 0.50] | exp=19.0000 | obs=19.0
+PASS TEST-15 | N1 Overview KPI 'High-risk item-days' [normal: full range, all items, threshold 0.50] | exp=223.0000 | obs=223.0
+PASS TEST-15 | N1 Overview KPI 'Order spend' [normal: full range, all items, threshold 0.50] | exp=602548.6000 | obs=602549.0
+PASS TEST-15 | N1 no exceptions on Overview | exp=0 | obs=0
+PASS TEST-15 | N1 active-population caption [normal: full range, all items, threshold 0.50] | exp=731 days, 8 items, 5848 rows | obs=[731, 8, 8, 5848]
+2026-11-15 21:27:30.776 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N1 same filter population on item_explorer | exp=731 days / 5848 rows | obs=[731, 8, 8, 5848]
+PASS TEST-15 | N1 Item Explorer 'Avg daily demand' (IVKIT) | exp=81.40 | obs=81.4
+PASS TEST-15 | N1 Item Explorer 'High-risk days' (IVKIT) | exp=35.00 | obs=35.0
+PASS TEST-15 | N1 Item Explorer 'Supplier disruptions' (IVKIT) | exp=28.00 | obs=28.0
+PASS TEST-15 | N1 Item Explorer 'Order spend' (IVKIT) | exp=229641.60 | obs=229642.0
+2026-11-15 21:27:31.078 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N1 same filter population on trends | exp=731 days / 5848 rows | obs=[731, 8, 8, 5848]
+2026-11-15 21:27:31.506 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N1 same filter population on scenarios | exp=731 days / 5848 rows | obs=[731, 8, 8, 5848]
+2026-11-15 21:27:31.750 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N1 same filter population on data | exp=731 days / 5848 rows | obs=[731, 8, 8, 5848]
+PASS TEST-15 | N1 Data page download row count | exp=5,848 rows match | obs=5,848 rows match the current filters.
+2026-11-15 21:27:32.086 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N1 same filter population on predictive | exp=731 days / 5848 rows | obs=[731, 8, 8, 5848]
+2026-11-15 21:27:33.436 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N2 Overview KPI 'Total ED arrivals' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=6130.0000 | obs=6130.0
+PASS TEST-15 | N2 Overview KPI 'Average daily arrivals' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=197.7419 | obs=197.7
+PASS TEST-15 | N2 Overview KPI 'Arrival forecast WAPE' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=8.5840 | obs=8.58
+PASS TEST-15 | N2 Overview KPI 'Surge days' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=0.0000 | obs=0.0
+PASS TEST-15 | N2 Overview KPI 'Fill rate' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=100.0000 | obs=100.0
+PASS TEST-15 | N2 Overview KPI 'Backorder days' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=0.0000 | obs=0.0
+PASS TEST-15 | N2 Overview KPI 'High-risk item-days' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=4.0000 | obs=4.0
+PASS TEST-15 | N2 Overview KPI 'Order spend' [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=3560.5000 | obs=3560.0
+PASS TEST-15 | N2 no exceptions on Overview | exp=0 | obs=0
+PASS TEST-15 | N2 active-population caption [normal: Mar 2025, GAUZE+MASK, threshold 0.30] | exp=31 days, 2 items, 62 rows | obs=[31, 2, 8, 62]
+2026-11-15 21:27:33.818 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N2 same filter population on item_explorer | exp=31 days / 62 rows | obs=[31, 2, 8, 62]
+PASS TEST-15 | N2 Item Explorer 'Avg daily demand' (GAUZE) | exp=226.81 | obs=226.8
+PASS TEST-15 | N2 Item Explorer 'High-risk days' (GAUZE) | exp=2.00 | obs=2.0
+PASS TEST-15 | N2 Item Explorer 'Supplier disruptions' (GAUZE) | exp=1.00 | obs=1.0
+PASS TEST-15 | N2 Item Explorer 'Order spend' (GAUZE) | exp=2584.00 | obs=2584.0
+2026-11-15 21:27:34.299 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N2 same filter population on trends | exp=31 days / 62 rows | obs=[31, 2, 8, 62]
+2026-11-15 21:27:34.713 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N2 same filter population on scenarios | exp=31 days / 62 rows | obs=[31, 2, 8, 62]
+2026-11-15 21:27:34.942 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N2 same filter population on data | exp=31 days / 62 rows | obs=[31, 2, 8, 62]
+PASS TEST-15 | N2 Data page download row count | exp=62 rows match | obs=62 rows match the current filters.
+2026-11-15 21:27:35.221 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | N2 same filter population on predictive | exp=31 days / 62 rows | obs=[31, 2, 8, 62]
+2026-11-15 21:27:35.826 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B1 Overview KPI 'Total ED arrivals' [boundary: single first day 2024-01-01] | exp=154.0000 | obs=154.0
+PASS TEST-15 | B1 Overview KPI 'Average daily arrivals' [boundary: single first day 2024-01-01] | exp=154.0000 | obs=154.0
+PASS TEST-15 | B1 Overview KPI 'Arrival forecast WAPE' [boundary: single first day 2024-01-01] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B1 Overview KPI 'Surge days' [boundary: single first day 2024-01-01] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B1 Overview KPI 'Fill rate' [boundary: single first day 2024-01-01] | exp=100.0000 | obs=100.0
+PASS TEST-15 | B1 Overview KPI 'Backorder days' [boundary: single first day 2024-01-01] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B1 Overview KPI 'High-risk item-days' [boundary: single first day 2024-01-01] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B1 Overview KPI 'Order spend' [boundary: single first day 2024-01-01] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B1 no exceptions on Overview | exp=0 | obs=0
+PASS TEST-15 | B1 active-population caption [boundary: single first day 2024-01-01] | exp=1 days, 8 items, 8 rows | obs=[1, 8, 8, 8]
+2026-11-15 21:27:36.240 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B1 same filter population on item_explorer | exp=1 days / 8 rows | obs=[1, 8, 8, 8]
+PASS TEST-15 | B1 Item Explorer 'Avg daily demand' (IVKIT) | exp=67.00 | obs=67.0
+PASS TEST-15 | B1 Item Explorer 'High-risk days' (IVKIT) | exp=0.00 | obs=0.0
+PASS TEST-15 | B1 Item Explorer 'Supplier disruptions' (IVKIT) | exp=0.00 | obs=0.0
+PASS TEST-15 | B1 Item Explorer 'Order spend' (IVKIT) | exp=0.00 | obs=0.0
+2026-11-15 21:27:36.582 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B1 same filter population on trends | exp=1 days / 8 rows | obs=[1, 8, 8, 8]
+2026-11-15 21:27:37.180 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B1 same filter population on scenarios | exp=1 days / 8 rows | obs=[1, 8, 8, 8]
+2026-11-15 21:27:37.432 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B1 same filter population on data | exp=1 days / 8 rows | obs=[1, 8, 8, 8]
+PASS TEST-15 | B1 Data page download row count | exp=8 rows match | obs=8 rows match the current filters.
+2026-11-15 21:27:37.734 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B1 same filter population on predictive | exp=1 days / 8 rows | obs=[1, 8, 8, 8]
+2026-11-15 21:27:38.519 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B2 Overview KPI 'Total ED arrivals' [boundary: single last day 2025-12-31] | exp=202.0000 | obs=202.0
+PASS TEST-15 | B2 Overview KPI 'Average daily arrivals' [boundary: single last day 2025-12-31] | exp=202.0000 | obs=202.0
+PASS TEST-15 | B2 Overview KPI 'Arrival forecast WAPE' [boundary: single last day 2025-12-31] | exp=10.4950 | obs=10.5
+PASS TEST-15 | B2 Overview KPI 'Surge days' [boundary: single last day 2025-12-31] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B2 Overview KPI 'Fill rate' [boundary: single last day 2025-12-31] | exp=100.0000 | obs=100.0
+PASS TEST-15 | B2 Overview KPI 'Backorder days' [boundary: single last day 2025-12-31] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B2 Overview KPI 'High-risk item-days' [boundary: single last day 2025-12-31] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B2 Overview KPI 'Order spend' [boundary: single last day 2025-12-31] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B2 no exceptions on Overview | exp=0 | obs=0
+PASS TEST-15 | B2 active-population caption [boundary: single last day 2025-12-31] | exp=1 days, 8 items, 8 rows | obs=[1, 8, 8, 8]
+2026-11-15 21:27:38.862 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B3 Overview KPI 'Total ED arrivals' [boundary: threshold 0.00 (every item-day high-risk)] | exp=5972.0000 | obs=5972.0
+PASS TEST-15 | B3 Overview KPI 'Average daily arrivals' [boundary: threshold 0.00 (every item-day high-risk)] | exp=199.0667 | obs=199.1
+PASS TEST-15 | B3 Overview KPI 'Arrival forecast WAPE' [boundary: threshold 0.00 (every item-day high-risk)] | exp=6.9324 | obs=6.93
+PASS TEST-15 | B3 Overview KPI 'Surge days' [boundary: threshold 0.00 (every item-day high-risk)] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B3 Overview KPI 'Fill rate' [boundary: threshold 0.00 (every item-day high-risk)] | exp=100.0000 | obs=100.0
+PASS TEST-15 | B3 Overview KPI 'Backorder days' [boundary: threshold 0.00 (every item-day high-risk)] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B3 Overview KPI 'High-risk item-days' [boundary: threshold 0.00 (every item-day high-risk)] | exp=30.0000 | obs=30.0
+PASS TEST-15 | B3 Overview KPI 'Order spend' [boundary: threshold 0.00 (every item-day high-risk)] | exp=10305.6000 | obs=10306.0
+PASS TEST-15 | B3 no exceptions on Overview | exp=0 | obs=0
+PASS TEST-15 | B3 active-population caption [boundary: threshold 0.00 (every item-day high-risk)] | exp=30 days, 1 items, 30 rows | obs=[30, 1, 8, 30]
+2026-11-15 21:27:39.254 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-15 | B4 Overview KPI 'Total ED arrivals' [boundary: threshold 1.00] | exp=5972.0000 | obs=5972.0
+PASS TEST-15 | B4 Overview KPI 'Average daily arrivals' [boundary: threshold 1.00] | exp=199.0667 | obs=199.1
+PASS TEST-15 | B4 Overview KPI 'Arrival forecast WAPE' [boundary: threshold 1.00] | exp=6.9324 | obs=6.93
+PASS TEST-15 | B4 Overview KPI 'Surge days' [boundary: threshold 1.00] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B4 Overview KPI 'Fill rate' [boundary: threshold 1.00] | exp=100.0000 | obs=100.0
+PASS TEST-15 | B4 Overview KPI 'Backorder days' [boundary: threshold 1.00] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B4 Overview KPI 'High-risk item-days' [boundary: threshold 1.00] | exp=0.0000 | obs=0.0
+PASS TEST-15 | B4 Overview KPI 'Order spend' [boundary: threshold 1.00] | exp=10305.6000 | obs=10306.0
+PASS TEST-15 | B4 no exceptions on Overview | exp=0 | obs=0
+PASS TEST-15 | B4 active-population caption [boundary: threshold 1.00] | exp=30 days, 1 items, 30 rows | obs=[30, 1, 8, 30]
+2026-11-15 21:27:39.786 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-25 | Overview with no items selected: item KPIs show an em dash instead of a number | exp=— for 4 item KPIs | obs={'Fill rate': '—', 'Backorder days': '—', 'High-risk item-days': '—', 'Order spend': '—'}
+PASS TEST-25 | Overview with no items selected: arrival KPIs still correct | exp=141,638 arrivals | obs=141,638
+2026-11-15 21:27:40.220 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-25 | Incomplete date range: warning shown and dashboard withheld | exp=warning + no KPI cards | obs={'warnings': ['Pick an end date to complete the date range.'], 'kpi_cards': 0}
+2026-11-15 21:27:40.555 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-25 | Scenario Comparison with no items: explanatory message, no table | exp=message | obs=['No items match the current filters. Select at least one category and item in the sidebar.']
+2026-11-15 21:27:40.797 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-25 | Predictive page for dates after 2025-12-24 (no model rows): explains why nothing is shown | exp=no-model-rows message | obs=['No model rows match the sidebar filters. Model rows end on 2025-12-24.']
+2026-11-15 21:27:41.360 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-21 | N: displayed low/base/high rows equal scenario_comparison.csv (GAUZE, 2025-07-15) | exp=exact (display rounding) | obs=match
+PASS TEST-21 | N: demand rises and days-of-supply falls from low to high | exp=monotonic | obs=True
+PASS TEST-21 | N: physical stock identical across scenarios (caption claim) | exp=1 distinct inventory position | obs=1
+2026-11-15 21:27:41.704 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-21 | B-first: displayed low/base/high rows equal scenario_comparison.csv (IVKIT, 2024-01-01) | exp=exact (display rounding) | obs=match
+PASS TEST-21 | B-first: demand rises and days-of-supply falls from low to high | exp=monotonic | obs=True
+PASS TEST-21 | B-first: physical stock identical across scenarios (caption claim) | exp=1 distinct inventory position | obs=1
+2026-11-15 21:27:42.060 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-21 | B-last: displayed low/base/high rows equal scenario_comparison.csv (GLOVEM, 2025-12-31) | exp=exact (display rounding) | obs=match
+PASS TEST-21 | B-last: demand rises and days-of-supply falls from low to high | exp=monotonic | obs=True
+PASS TEST-21 | B-last: physical stock identical across scenarios (caption claim) | exp=1 distinct inventory position | obs=1
+2026-11-15 21:27:42.423 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-22 | N (2025-06-10): all 8 items: category, whole-case order quantity and probability match independent calc | exp=0 mismatches | obs=0 mismatches []
+2026-11-15 21:27:43.488 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-22 | B-first model date (2025-01-01): all 8 items: category, whole-case order quantity and probability match independent calc | exp=0 mismatches | obs=0 mismatches []
+2026-11-15 21:27:44.672 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-22 | B-last model date (2025-12-24): all 8 items: category, whole-case order quantity and probability match independent calc | exp=0 mismatches | obs=0 mismatches []
+2026-11-15 21:27:45.715 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-02 | demand what-if normal-high: 7-day forecast 1285.3 -> 1485.3; independent 539.826 -> 623.826 units | exp=540 -> 624 | obs=540 units -> 624 units (+84 units)
+PASS TEST-14 | demand summary figures match independent calculation (normal-high) | exp=540 -> 624 | obs=moved from 540 to 624 units (+84 units, +15.6%)
+PASS TEST-24 | demand summary (normal-high): limitation language present, no causal wording | exp=hedge present; 0 causal terms | obs=hedge=True; causal terms=[]
+2026-11-15 21:27:47.641 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-02 | demand what-if normal-low: 7-day forecast 1285.3 -> 1210.3; independent 539.826 -> 508.326 units | exp=540 -> 508 | obs=540 units -> 508 units (-31 units)
+PASS TEST-14 | demand summary figures match independent calculation (normal-low) | exp=540 -> 508 | obs=moved from 540 to 508 units (-31 units, -5.8%)
+PASS TEST-24 | demand summary (normal-low): limitation language present, no causal wording | exp=hedge present; 0 causal terms | obs=hedge=True; causal terms=[]
+2026-11-15 21:27:49.513 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-23 | demand what-if boundary-max: 7-day forecast 1285.3 -> 1495.6; independent 539.826 -> 628.152 units | exp=540 -> 628 | obs=540 units -> 628 units (+88 units)
+PASS TEST-14 | demand summary figures match independent calculation (boundary-max) | exp=540 -> 628 | obs=moved from 540 to 628 units (+88 units, +16.4%)
+PASS TEST-24 | demand summary (boundary-max): limitation language present, no causal wording | exp=hedge present; 0 causal terms | obs=hedge=True; causal terms=[]
+2026-11-15 21:27:51.476 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-23 | demand what-if boundary-min: 7-day forecast 1285.3 -> 1078.0; independent 539.826 -> 452.760 units | exp=540 -> 453 | obs=540 units -> 453 units (-87 units)
+PASS TEST-14 | demand summary figures match independent calculation (boundary-min) | exp=540 -> 453 | obs=moved from 540 to 453 units (-87 units, -16.1%)
+PASS TEST-24 | demand summary (boundary-min): limitation language present, no causal wording | exp=hedge present; 0 causal terms | obs=hedge=True; causal terms=[]
+2026-11-15 21:27:53.669 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-06 | demand invalid-high-ratio (2024-01-13, 7d=1495.6, 1d forecast=142.0, ratio=1.50): error shown, NO prediction, NO summary | exp=error + 'No scenario prediction was produced' | obs=errors=1, comparison_table=False, summary=False; msg=The seven-day arrival forecast (1,496) is 1.50× seven times tomorrow's forecast (142 × 7 = 994). That is outside the plausible band (0.75–1.
+2026-11-15 21:27:55.743 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-06 | demand invalid-low-ratio (2025-01-28, 7d=1078.0, 1d forecast=208.8, ratio=0.74): error shown, NO prediction, NO summary | exp=error + 'No scenario prediction was produced' | obs=errors=1, comparison_table=False, summary=False; msg=The seven-day arrival forecast (1,078) is 0.74× seven times tomorrow's forecast (209 × 7 = 1,462). That is outside the plausible band (0.75–
+PASS TEST-06 | ratio rule boundary: exactly 0.75x (limits 0.75-1.4) | exp=accepted | obs=accepted
+PASS TEST-06 | ratio rule boundary: exactly 1.40x (limits 0.75-1.4) | exp=accepted | obs=accepted
+PASS TEST-06 | ratio rule boundary: just below 0.75x (limits 0.75-1.4) | exp=rejected | obs=rejected
+PASS TEST-06 | ratio rule boundary: just above 1.40x (limits 0.75-1.4) | exp=rejected | obs=rejected
+2026-11-15 21:27:57.749 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-23 | shortage what-if normal-lower-stock: closing stock 1284 -> 642; baseline equals saved evaluation prediction and direction is right | exp=baseline 1.4%; lower stock => not lower risk | obs=1.4% -> 2.7% (+1.3 pts)
+PASS TEST-14 | shortage summary figures equal side-by-side table (normal-lower-stock) | exp=1.4% -> 2.7% | obs=moved from 1.4% to 2.7% (+1.3 percentage points)
+PASS TEST-24 | shortage summary (normal-lower-stock): limitation + trade-off language, no causal wording | exp=hedge + trade-offs; 0 causal terms | obs=hedge=True; trade-offs=True; causal=[]
+2026-11-15 21:28:00.985 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-23 | shortage what-if boundary-min-stock: closing stock 1284 -> 0; baseline equals saved evaluation prediction and direction is right | exp=baseline 1.4%; lower stock => not lower risk | obs=1.4% -> 7.8% (+6.4 pts)
+PASS TEST-14 | shortage summary figures equal side-by-side table (boundary-min-stock) | exp=1.4% -> 7.8% | obs=moved from 1.4% to 7.8% (+6.4 percentage points)
+PASS TEST-24 | shortage summary (boundary-min-stock): limitation + trade-off language, no causal wording | exp=hedge + trade-offs; 0 causal terms | obs=hedge=True; trade-offs=True; causal=[]
+2026-11-15 21:28:04.048 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-23 | shortage what-if boundary-max-stock: closing stock 1284 -> 1624; baseline equals saved evaluation prediction and direction is right | exp=baseline 1.4%; lower stock => not lower risk | obs=1.4% -> 1.2% (-0.2 pts)
+PASS TEST-14 | shortage summary figures equal side-by-side table (boundary-max-stock) | exp=1.4% -> 1.2% | obs=moved from 1.4% to 1.2% (-0.2 percentage points)
+PASS TEST-24 | shortage summary (boundary-max-stock): limitation + trade-off language, no causal wording | exp=hedge + trade-offs; 0 causal terms | obs=hedge=True; trade-offs=True; causal=[]
+2026-11-15 21:28:07.254 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-26 | Seven-day item demand: page displays required limitation and uncertainty statements | exp=all 6 phrases present | obs=missing=[]
+2026-11-15 21:28:07.655 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+PASS TEST-26 | Seven-day shortage probability: page displays required limitation and uncertainty statements | exp=all 7 phrases present | obs=missing=[]
+
+SUMMARY by test:
+ status   PASS
+test_id      
+TEST-02     2
+TEST-06     6
+TEST-14     7
+TEST-15    90
+TEST-21     9
+TEST-22     3
+TEST-23     5
+TEST-24     7
+TEST-25     5
+TEST-26     2
+TOTAL 136 FAIL 0
