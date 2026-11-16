@@ -1,5 +1,30 @@
 # Group Member Contributions
 
+## Weeks 12-13: application validation and evidence
+
+### Monica Hall
+
+- Translated the Weeks 12-13 instructions into project-specific requirements, acceptance criteria and test rows.
+- Completed the validation matrix, including supported claims, partial passes, the untested UI reconciliation, limitations and corrective actions.
+- Prepared the two-to-three-page validation memo and the evidence index.
+- Ran the data generator, model training and automated application-load test in a new Python environment and documented the reproduced results.
+- Prepared the typical and challenging end-to-end decision walkthroughs.
+- Organized the Week 12 submission checklist and current evidence package.
+
+### Abubakar Sani
+
+- Built and deployed the core Streamlit application used in the validation.
+- Developed the dashboard pages, navigation, filters, charts and recommended-actions display.
+- Contributed the predictive-model implementation, scenario controls, input checks and automatic summaries evaluated in the matrix.
+- Arranged Tester A's external review and implemented the recommended-actions and layout improvements arising from user feedback.
+- Reviewed and merged the Week 11 application and documentation that form the validated version 3.1 baseline.
+
+### Shared responsibilities
+
+- Review the completed validation package and confirm that claims match the current application.
+- Record the seven-minute demonstration and twelve-minute matrix walkthrough.
+- Add accessible video links, confirm repository access and submit the final GitHub link.
+
 ## Week 11: model evaluation, improvement and user testing
 
 ### Monica Hall
