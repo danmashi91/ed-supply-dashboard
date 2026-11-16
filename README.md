@@ -1,4 +1,20 @@
-## Week 11 deliverables (current submission)
+## Weeks 12-13 validation deliverables (current submission)
+
+- **Live application:** https://ed-supply-dashboard.streamlit.app/
+- **Completed validation matrix:** [validation/ED_Supply_Validation_Matrix_Completed.xlsx](validation/ED_Supply_Validation_Matrix_Completed.xlsx)
+- **Validation memo:** [validation/ED_Supply_Validation_Memo.docx](validation/ED_Supply_Validation_Memo.docx)
+- **Evidence index:** [evidence/README.md](evidence/README.md)
+- **Clean-environment reproducibility record:** [evidence/reproducibility_run.md](evidence/reproducibility_run.md)
+- **Two end-to-end walkthroughs:** [evidence/end_to_end_walkthroughs.md](evidence/end_to_end_walkthroughs.md)
+- **Updated group contributions:** [docs/group_contributions.md](docs/group_contributions.md)
+- **Submission checklist:** [docs/week12_submission_checklist.md](docs/week12_submission_checklist.md)
+- **Seven-minute demonstration video:** *link to be added after recording*
+- **Twelve-minute validation-matrix walkthrough:** *link to be added after recording*
+- **Previous submission preserved:** tag [`week10-submission`](https://github.com/danmashi91/ed-supply-dashboard/releases/tag/week10-submission) and branch `week10-submission-snapshot`
+
+The validation conclusion is intentionally limited: version 3.1 is suitable for a classroom demonstration, but not yet for a controlled hospital pilot or operational purchasing. The evidence folder explains the remaining synthetic-data, user-testing and operational-control gaps.
+
+## Week 11 deliverables
 - **Live app (revised):** https://ed-supply-dashboard.streamlit.app/ (see the **Predictive Models** page)
 - **Evaluation report:** [docs/week11_evaluation_report.md](docs/week11_evaluation_report.md): evaluation design and leakage checks, model vs. baseline comparison, improvements tried and why the final models were kept, user-testing findings and resulting changes, limitations and future work
 - **User-testing protocol:** [docs/user_testing_protocol.md](docs/user_testing_protocol.md)
