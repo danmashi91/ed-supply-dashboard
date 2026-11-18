@@ -8,7 +8,7 @@
 - **Two end-to-end walkthroughs:** [evidence/end_to_end_walkthroughs.md](evidence/end_to_end_walkthroughs.md)
 - **Updated group contributions:** [docs/group_contributions.md](docs/group_contributions.md)
 - **Submission checklist:** [docs/week12_submission_checklist.md](docs/week12_submission_checklist.md)
-- **Seven-minute demonstration video:** *link to be added after recording*
+- **Seven-minute demonstration video:** https://drive.google.com/file/d/1yGPDQW_EBXkLtcYh9qO1kZkzJIb3Pyf7/view?usp=sharing
 - **Twelve-minute validation-matrix walkthrough:** *link to be added after recording*
 - **Previous submission preserved:** tag [`week10-submission`](https://github.com/danmashi91/ed-supply-dashboard/releases/tag/week10-submission) and branch `week10-submission-snapshot`
 

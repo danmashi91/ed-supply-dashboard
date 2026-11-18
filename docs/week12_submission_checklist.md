@@ -18,7 +18,7 @@
 
 ## Still required before Canvas submission
 
-- [ ] Record and upload the seven-minute demonstration video
+- [x] Record and upload the seven-minute demonstration video (link added to `README.md` and `Presentation_Videos.md`)
 - [ ] Record and upload the additional twelve-minute matrix walkthrough video
 - [ ] Add both accessible video links to `README.md`
 - [ ] Confirm that the live Streamlit application opens from a logged-out or private browser window
