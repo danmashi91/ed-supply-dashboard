@@ -178,8 +178,8 @@ thr_s = meta["shortage"]["decision_threshold"]
 for cid, d in [("N", dt.date(2025, 6, 10)), ("B-first model date", dt.date(2025, 1, 1)), ("B-last model date", dt.date(2025, 12, 24))]:
     at = open_page("predictive")
     at.sidebar.date_input[0].set_value((dt.date(2025, 1, 1), dt.date(2025, 12, 31))); at.run()
-    at.selectbox[0].set_value(d); at.run()
-    shown = at.dataframe[0].value
+    at.selectbox(key="rec_date").set_value(d); at.run()
+    shown = [x.value for x in at.dataframe if "Suggested order (units)" in x.value.columns][0]
     rows = mdata[mdata.date == pd.Timestamp(d)]
     exp = []
     for _, r in rows.iterrows():

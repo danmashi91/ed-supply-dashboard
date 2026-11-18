@@ -845,72 +845,14 @@ def page_predictive_models() -> None:
         footer()
         st.stop()
 
-    st.info(
-        "Both models are trained on synthetic data. **Overall importance** describes what the model relies "
-        "on across the whole 2025 test period. **Individual contributions** explain one prediction for one "
-        "item on one date. Neither is evidence that a predictor causes the outcome.",
-        icon="ℹ️",
-    )
-
     # ------------------------------------------------------------------
-    # Recommended actions (added after user testing: the participant asked for
-    # simple recommendations on which items need attention and when to order)
+    # Controls shared by every tab: model, item and date
     # ------------------------------------------------------------------
-    st.subheader("Recommended actions")
-    rec_pool = model_data[model_data["item_id"].isin(selected_items)]
-    rec_pool = rec_pool[(rec_pool["date"].dt.date >= START) & (rec_pool["date"].dt.date <= END)]
-    if rec_pool.empty:
-        st.info("No model rows match the sidebar filters. Model rows end on 2025-12-24.", icon="🔎")
-    else:
-        rec_dates = sorted(rec_pool["date"].dt.date.unique())
-        rec_date = st.selectbox("Review date", rec_dates, index=len(rec_dates) - 1, key="rec_date",
-                                format_func=lambda d: d.strftime("%Y-%m-%d"))
-        rows = rec_pool[rec_pool["date"].dt.date == rec_date]
-        stock = DAILY[DAILY["date"].dt.date == rec_date].set_index("item_id")
-        s_thr = float(metadata["shortage"].get("decision_threshold", 0.5))
-        recs = []
-        for _, r in rows.iterrows():
-            one = r.to_frame().T.reset_index(drop=True)
-            p_short = model_prediction(shortage_model, one[metadata["shortage"]["raw_predictors"]], metadata["shortage"], True)
-            demand7 = model_prediction(demand_model, one[metadata["demand"]["raw_predictors"]], metadata["demand"], False)
-            pos = float(stock.loc[r["item_id"], "inventory_position"])
-            pack = int(stock.loc[r["item_id"], "case_pack"])
-            gap = max(0.0, demand7 - pos)
-            order_units = int(np.ceil(gap / pack) * pack) if gap > 0 else 0
-            if p_short >= s_thr:
-                action = "🔴 Review now: check stock and supplier; order or expedite if confirmed"
-                rank = 0
-            elif order_units > 0:
-                action = "🟠 Order this week: stock will not cover next week's demand"
-                rank = 1
-            else:
-                action = "🟢 No action needed: stock covers next week"
-                rank = 2
-            recs.append({"rank": rank, "p": p_short, "Item": ITEM_NAME.get(r["item_id"], r["item_id"]),
-                         "Recommended action": action,
-                         "Shortage probability": f"{p_short:.1%}",
-                         "Expected use, next 7 days": f"{demand7:,.0f}",
-                         "Stock incl. open orders": f"{pos:,.0f}",
-                         "Suggested order (units)": f"{order_units:,}" + (f" ({order_units // pack} case{'s' if order_units // pack != 1 else ''})" if order_units else "")})
-        rec_df = pd.DataFrame(recs).sort_values(["rank", "p"], ascending=[True, False])
-        n_red, n_orange = int((rec_df["rank"] == 0).sum()), int((rec_df["rank"] == 1).sum())
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Review now", n_red)
-        c2.metric("Order this week", n_orange)
-        c3.metric("No action needed", len(rec_df) - n_red - n_orange)
-        st.dataframe(rec_df.drop(columns=["rank", "p"]), hide_index=True, width="stretch")
-        st.caption(
-            f"How these are made: **Review now** = shortage probability at or above the {s_thr:.1%} screening "
-            "threshold. **Order this week** = expected use over the next 7 days is more than stock on hand plus open "
-            "orders; the suggested order covers the gap, rounded up to whole case packs. These are model-based "
-            "suggestions for the manager to check, not automatic orders: about 1 in 10 review flags turned out to be "
-            "a real shortage in 2025, and the suggestion does not add safety stock or account for lead time."
+    ctl_model, ctl_item, ctl_date = st.columns([3, 2, 2])
+    with ctl_model:
+        model_choice = st.radio(
+            "KPI model", ["Seven-day item demand", "Seven-day shortage probability"], horizontal=True,
         )
-    st.divider()
-
-    model_choice = st.radio(
-        "KPI model", ["Seven-day item demand", "Seven-day shortage probability"], horizontal=True,
-    )
     probability = model_choice == "Seven-day shortage probability"
     key = "shortage" if probability else "demand"
     model = shortage_model if probability else demand_model
@@ -922,489 +864,561 @@ def page_predictive_models() -> None:
     def fmt_pred(x: float) -> str:
         return f"{x:.1%}" if probability else f"{x:,.0f} units"
 
-    # ------------------------------------------------------------------
-    # 1. KPI definition, relevance, predictors and algorithm
-    # ------------------------------------------------------------------
-    st.subheader("KPI, predictors and model")
-    if probability:
-        st.markdown(
-            "**KPI 2 — seven-day shortage probability:** the estimated chance that this item has any "
-            "backorder during the next seven days.\n\n"
-            "**Why it matters:** the inventory manager cannot review every item every day. Ranking items by "
-            "shortage probability points attention, extra orders and supplier escalation where a stockout is "
-            "most likely, protecting service continuity for patients without over-ordering everything."
-        )
-    else:
-        st.markdown(
-            "**KPI 1 — seven-day item demand:** the predicted number of units of this item that will be "
-            "requested over the next seven days.\n\n"
-            "**Why it matters:** this is how much stock the manager needs to cover the coming week. "
-            "Under-estimating it leads to shortages and costly emergency purchases; over-estimating it ties "
-            "up money and shelf space and risks expiry. It feeds order quantity and timing decisions."
-        )
-    with st.expander("Predictors and why they are relevant", expanded=False):
-        reasons = PREDICTOR_REASONS[key]
-        st.table(pd.DataFrame({"Predictor": list(reasons), "Why it is relevant": list(reasons.values())}))
-    algorithm_note = (
-        "**Algorithm: calibrated logistic regression.** The outcome is yes/no and rare, so a model that "
-        "outputs a probability is the natural choice. Class weighting helps it learn from the few "
-        "shortage examples, and sigmoid calibration then rescales the output so a stated 3% means "
-        "roughly 3%. Logistic regression is also simple to explain to a non-technical manager."
-        if probability else
-        ("**Retained method: arrival-based formula** (seven-day arrival forecast × units used per patient). "
-         "Week 11 evaluation compared it with four learned models on 2024 data only. The learned gradient-boosting "
-         "models were no more accurate, and the Week 10 version predicted *lower* demand when more patients were "
-         "expected on most rows, which made its what-if results misleading. A constrained version fixed the direction "
-         "but was still less accurate. The formula is accurate, transparent and always moves in the right direction."
-         if details.get("retained_type") == "formula" else
-         "**Algorithm: gradient boosting regression.** Demand depends on combinations of factors (item "
-         "scale, recent use, calendar and surges) that do not add up in a straight line. Gradient boosting "
-         "captures these without a fixed formula, and Huber loss limits the pull of unusual surge days.")
-    )
-    st.markdown(algorithm_note)
-    with st.expander("How the model was chosen (candidates compared on 2024 data only)"):
-        sel = pd.DataFrame(details["selection"])
-        if probability:
-            sel = sel.rename(columns={"candidate": "Candidate", "validation_roc_auc": "Validation ROC-AUC",
-                                      "validation_average_precision": "Validation average precision"})
-        else:
-            sel = sel.drop(columns=["fold_wape"], errors="ignore").rename(
-                columns={"candidate": "Candidate", "mean_validation_wape": "Mean validation WAPE (4 rolling folds)",
-                         "direction_violation_share": "Rows where +10% patients LOWERS demand"})
-            sel["Mean validation WAPE (4 rolling folds)"] = sel["Mean validation WAPE (4 rolling folds)"].map("{:.2%}".format)
-            if "Rows where +10% patients LOWERS demand" in sel:
-                sel["Rows where +10% patients LOWERS demand"] = sel["Rows where +10% patients LOWERS demand"].map("{:.0%}".format)
-        st.dataframe(sel, hide_index=True, width="stretch")
-        st.caption(f"Rule: {details['selection_rule']}. Chosen: {details['algorithm']}.")
-    with st.expander("Data availability and leakage checks"):
-        st.markdown(
-            "The prediction is made **after the daily inventory close on day t**. The outcome covers days "
-            "t+1 through t+7. Therefore, only information known by the end of day t is permitted."
-        )
-        for check in metadata.get("leakage_checks", []):
-            st.markdown(f"- {check}")
-        st.caption(metadata.get("final_test_policy", ""))
-
-    # ------------------------------------------------------------------
-    # 2. Validation on the 2025 test period
-    # ------------------------------------------------------------------
-    st.subheader("How well it predicts (2025 test period, never used for training)")
-    if probability:
-        cols = st.columns(5)
-        cols[0].metric("ROC-AUC", f"{met['roc_auc']:.3f}", help="Chance that a random shortage case is ranked above a random non-shortage case.")
-        cols[1].metric("Average precision", f"{met['average_precision']:.3f}",
-                       help=f"Area under the precision-recall curve. A random ranking would score about {met['observed_rate']:.3f}.")
-        cols[2].metric("Shortages caught", f"{met['recall']:.0%}", help=f"Recall at the {threshold:.1%} screening threshold.")
-        cols[3].metric("Alerts that were real", f"{met['precision']:.1%}", help=f"Precision at the {threshold:.1%} screening threshold.")
-        cols[4].metric("Item-days flagged", f"{met['alert_share']:.1%}")
-        st.warning(
-            f"Shortages are rare: {met['positive_cases']} of {met['test_rows']:,} test item-days "
-            f"({met['observed_rate']:.2%}). At the {threshold:.1%} screening threshold (chosen on 2024 data), "
-            f"the model flags {met['alert_share']:.1%} of item-days and catches {met['recall']:.0%} of shortages, "
-            f"but most alerts are false alarms. Its average predicted probability ({met['mean_predicted_probability']:.1%}) "
-            f"is above the 2025 rate because shortages were more common in the 2024 training year. "
-            "Use it to rank items for review, not as an automatic ordering rule."
-        )
-        per10 = met["precision"] * 10
-        st.info(
-            f"**In plain terms:** the model flags about {met['alert_share']:.0%} of item-days. Roughly "
-            f"{per10:.0f} in 10 flagged items actually run short within a week, and it catches about "
-            f"{met['recall'] * 10:.0f} in 10 of the shortages that happen. A flag means *check this item*, not *order now*."
-        )
-    else:
-        cols = st.columns(4)
-        cols[0].metric("Average miss (% of weekly demand)", f"{met['wape']:.1%}", help="WAPE: total absolute error ÷ total actual demand.")
-        cols[1].metric("Typical miss per item-week", f"{met['mae_units']:,.0f} units", help="MAE (mean absolute error).")
-        cols[2].metric("Large-miss measure", f"{met['rmse_units']:,.0f} units", help="RMSE: weights large misses more heavily.")
-        cols[3].metric("R²", f"{met['r2']:.3f}", help="High mainly because items differ greatly in scale.")
-        st.info(
-            f"**In plain terms:** over 2025, the weekly demand estimate was off by about {met['wape']:.1%} of what was "
-            f"actually used — roughly {met['mae_units']:,.0f} units per item per week. No learned model did better. "
-            "Because the synthetic data was generated from arrivals × use rate, this accuracy is optimistic; on real "
-            "hospital data the same method would need to be re-checked."
-        )
-    st.caption(
-        f"Training: {metadata['training_period'][0]} to {metadata['training_period'][1]} · "
-        f"Test: {metadata['test_period'][0]} to {metadata['test_period'][1]} · Split: chronological."
-    )
-
-    # ------------------------------------------------------------------
-    # Original/revised comparison and error conditions
-    # ------------------------------------------------------------------
-    st.divider()
-    st.subheader("Evaluation details")
-    st.caption("Expand a section for the full tables. The key results are summarized above.")
-    comp_box = st.expander("Baseline, original and revised comparison", expanded=False)
-    comparison = pd.DataFrame(details.get("original_vs_revised", []))
-    if not comparison.empty:
-        comparison = comparison.rename(columns={
-            "version": "Version", "model": "Method", "validation_wape": "Validation WAPE",
-            "test_wape": "Test WAPE", "test_mae_units": "Test MAE (units)",
-            "validation_average_precision": "Validation average precision",
-            "test_roc_auc": "Test ROC-AUC", "test_average_precision": "Test average precision",
-            "test_brier_score": "Test Brier score", "test_precision": "Test precision",
-            "test_recall": "Test recall", "retained": "Retained",
-            "direction_violation_share": "Rows where +10% patients lowers demand (validation)",
-        })
-        for col in ["Validation WAPE", "Test WAPE", "Rows where +10% patients lowers demand (validation)",
-                    "Test precision", "Test recall"]:
-            if col in comparison:
-                comparison[col] = comparison[col].map(lambda v: f"{v:.1%}" if isinstance(v, (int, float)) else v)
-        comparison["Retained"] = comparison["Retained"].map({True: "✅ Retained", False: ""})
-        comp_box.dataframe(comparison, hide_index=True, width="stretch")
-        comp_box.caption("Validation = chosen on 2024 data only. Test = 2025, reported once after the choice was fixed.")
-    st.info(details.get("improvement_conclusion", ""))
-
-    st.markdown("**Where performance is weaker**")
-    seg_box = st.expander("Full error table by item and condition", expanded=False)
-    segments = error_analysis[error_analysis["kpi"] == ("Seven-day shortage" if probability else "Seven-day demand")].copy()
-    if probability:
-        item_segments = segments[segments["segment_type"] == "item"].sort_values(
-            ["recall", "false_positives"], ascending=[True, False]
-        )
-        display_cols = ["segment", "rows", "positives", "average_precision", "precision", "recall",
-                        "false_positives", "false_negatives"]
-        seg_box.dataframe(item_segments[display_cols].rename(columns={
-            "segment": "Item", "rows": "Rows", "positives": "Shortages",
-            "average_precision": "Average precision", "precision": "Precision", "recall": "Recall",
-            "false_positives": "False alerts", "false_negatives": "Missed shortages",
-        }), hide_index=True, width="stretch")
-        pos = item_segments[pd.to_numeric(item_segments["positives"], errors="coerce") > 0]
-        names = ", ".join(ITEM_NAME.get(i, i) for i in pos["segment"])
-        weakest = pos.sort_values("recall").iloc[0] if not pos.empty else None
-        st.warning(
-            f"Only {len(pos)} items ({names}) had shortages in the 2025 test period"
-            + (f"; the weakest recall is {ITEM_NAME.get(weakest['segment'], weakest['segment'])} "
-               f"({float(weakest['recall']):.0%})" if weakest is not None else "")
-            + ". Items with no observed shortages still generate false alerts. Subgroup estimates are unstable "
-            "because the positive counts are very small. Treat the score as a review queue, not an order instruction."
-        )
-    else:
-        weak = segments.sort_values("wape", ascending=False).head(10).copy()
-        def segment_label(row: pd.Series) -> str:
-            if row["segment_type"] == "surge":
-                return "Surge days" if str(row["segment"]) == "1" else "Normal days"
-            if row["segment_type"] == "item":
-                return ITEM_NAME.get(row["segment"], row["segment"])
-            return f"{str(row['segment']).capitalize()} demand weeks"
-        weak["Segment"] = weak.apply(segment_label, axis=1)
-        weak["Average miss"] = pd.to_numeric(weak["wape"]).map("{:.1%}".format)
-        weak["Typical miss (units)"] = pd.to_numeric(weak["mae"]).round(0).astype(int)
-        weak["Average bias (units)"] = pd.to_numeric(weak["bias"]).map("{:+,.0f}".format)
-        seg_box.dataframe(weak[["segment_type", "Segment", "rows", "Average miss", "Typical miss (units)", "Average bias (units)"]]
-                     .rename(columns={"segment_type": "Segment type", "rows": "Item-weeks"}),
-                     hide_index=True, width="stretch")
-        seg_box.caption("Bias: negative = the estimate was too low (risk of running short); positive = too high.")
-        surge = segments[segments["segment_type"] == "surge"].set_index("segment")
-        band = segments[segments["segment_type"] == "demand band"].set_index("segment")
-        s_on = float(surge.loc["1", "wape"]) if "1" in surge.index else float("nan")
-        s_off = float(surge.loc["0", "wape"]) if "0" in surge.index else float("nan")
-        surge_bias = float(surge.loc["1", "bias"]) if "1" in surge.index else float("nan")
-        st.warning(
-            f"Errors are about {s_on / s_off:.0f}× larger during surge periods ({s_on:.1%} average miss vs. {s_off:.1%} "
-            f"otherwise), and during surges the estimate is {'too low' if surge_bias < 0 else 'too high'} by about "
-            f"{abs(surge_bias):,.0f} units per item-week on average, because the arrival forecast does not see a surge "
-            "coming. During a surge, hold extra safety stock and use the what-if to test a higher arrival forecast "
-            "rather than rely on the baseline estimate."
-        )
-
-    # ------------------------------------------------------------------
-    # 3a/3b. Overall predictor importance + contextual interpretation
-    # ------------------------------------------------------------------
-    st.divider()
-    st.subheader("Overall predictor importance (whole test period)")
-    model_name = "Seven-day shortage" if probability else "Seven-day demand"
-    imp = importance[importance["model"] == model_name].copy()
-    imp["Predictor"] = imp["predictor"].map(lambda c: PREDICTOR_LABELS.get(c, readable(c)))
-    fig_imp = px.bar(
-        imp.sort_values("importance"), x="importance", y="Predictor", orientation="h", error_x="std",
-        labels={"importance": ("Drop in ROC-AUC when shuffled" if probability
-                               else "Increase in average error (units) when shuffled"), "Predictor": ""},
-    )
-    fig_imp.update_layout(height=380, margin=dict(t=10, b=10))
-    st.plotly_chart(fig_imp, width="stretch")
-    if probability:
-        st.markdown(
-            "**What this means:** the model leans most on **closing stock** compared with recent demand: "
-            "low physical stock against a busy week is the clearest warning sign. **Recent demand** (yesterday "
-            "and the seven-day average) comes next, because a rising trend uses stock up faster. Surges, lead "
-            "time and the arrival forecast add smaller signals. **Days of supply** ranks low, not because "
-            "coverage is unimportant but because closing stock and recent demand already carry the same "
-            "information. Supplier events are rare, so they matter on the few days they happen."
-        )
-    else:
-        st.markdown(
-            "**What this means:** **units used per arrival** dominates because it sets each item's scale "
-            "(gloves vs. specimen cups); shuffling it between items creates huge errors. The **seven-day arrival "
-            "forecast** ranks lower only because it varies little from week to week (about ±15%). Within one item, "
-            "it drives the prediction one-for-one: 10% more expected patients means 10% more expected demand."
-        )
-    st.caption(
-        "Method: permutation importance. Each predictor is shuffled in turn across the 2025 test data and "
-        "the loss of accuracy is measured (bars show ± one standard deviation over 8 shuffles). It shows "
-        "what the model relies on overall. It does not show cause and effect."
-    )
-
-    # ------------------------------------------------------------------
-    # Baseline prediction for one item and date
-    # ------------------------------------------------------------------
     eligible = model_data[model_data["item_id"].isin(selected_items)].copy()
     eligible = eligible[(eligible["date"].dt.date >= START) & (eligible["date"].dt.date <= END)]
     if eligible.empty:
         stop_with("No model rows match the current sidebar filters. Model rows end on 2025-12-24, "
                   "because each needs seven days of known outcomes.")
 
-    st.divider()
-    st.subheader("Individual prediction")
-    left, right = st.columns(2)
-    with left:
+    with ctl_item:
         model_item = st.selectbox(
             "Item", [i for i in ITEMS["item_id"] if i in set(eligible["item_id"])],
             format_func=lambda i: ITEM_NAME.get(i, i), key=f"model_item_{key}",
+            help="Used by the Explanations and What-if tabs.",
         )
     item_rows = eligible[eligible["item_id"] == model_item]
     valid_dates = sorted(item_rows["date"].dt.date.unique())
-    with right:
+    with ctl_date:
         model_date = st.selectbox("Date", valid_dates, index=len(valid_dates) - 1, key=f"model_date_{key}",
-                                  format_func=lambda d: d.strftime("%Y-%m-%d"))
+                                  format_func=lambda d: d.strftime("%Y-%m-%d"),
+                                  help="Used by the Explanations and What-if tabs.")
     baseline_row = item_rows[item_rows["date"].dt.date == model_date].tail(1).reset_index(drop=True)
     baseline_prediction = model_prediction(model, baseline_row[raw], details, probability)
     actual_col = "target_shortage_next_7d" if probability else "target_demand_next_7d"
     actual = baseline_row[actual_col].iloc[0]
 
-    m1, m2 = st.columns(2)
-    m1.metric("Baseline model prediction", fmt_pred(baseline_prediction))
-    m2.metric("What actually happened (known in hindsight)",
-              ("A shortage occurred" if actual == 1 else "No shortage") if probability else f"{actual:,.0f} units")
-    st.markdown(f"**Contributions to this baseline prediction** ({ITEM_NAME.get(model_item, model_item)}, {model_date:%Y-%m-%d})")
-    base_contrib = reference_replacement_contributions(model, baseline_row, details, probability)
-    st.plotly_chart(contribution_chart(base_contrib, probability), width="stretch", key=f"base_contrib_{key}")
-    st.markdown(contribution_sentence(base_contrib, probability))
-    st.caption(
-        "Method: each predictor in turn is set to its typical 2024 value (median, or most common for "
-        "supplier event) and the prediction is recomputed. The difference is that predictor's approximate "
-        "contribution to *this* prediction. Interactions mean the bars need not add up exactly. These are "
-        "model sensitivities, not causal effects."
+    tab_acc, tab_exp, tab_what, tab_act, tab_about = st.tabs(
+        ["Accuracy", "Explanations", "What-if", "Recommended actions", "About the model"]
     )
 
     # ------------------------------------------------------------------
-    # 3c. What-if analysis
+    # Tab: Accuracy (headline numbers, where it struggles, evaluation tables)
     # ------------------------------------------------------------------
-    st.divider()
-    st.subheader("What-if scenario")
-    st.caption(
-        f"Baseline = the recorded values for {ITEM_NAME.get(model_item, model_item)} on {model_date:%Y-%m-%d} "
-        f"(prediction {fmt_pred(baseline_prediction)}). Change the permitted scenario inputs and run it. The result is a "
-        "model-based scenario, not a guaranteed effect of a real-world change."
-    )
-    if probability:
-        control_table = pd.DataFrame([
-            ["Planning inputs", "Closing stock; supplier lead time", "The manager can influence these through ordering, stock transfers or supplier choice, though not instantly."],
-            ["External conditions", "Seven-day arrival forecast; surge; supplier event", "Outside the manager's control, but worth testing as scenarios."],
-            ["Fixed / observed", "Recent demand; 28-day average arrivals", "Already happened for the selected date, so locked."],
-            ["Derived", "Days of supply", "Recalculated from closing stock; cannot be edited on its own."],
-        ], columns=["Type", "Predictors", "How to interpret"])
-    else:
-        control_table = pd.DataFrame([
-            ["External conditions", "Seven-day arrival forecast", "Outside the manager's control, but the main thing worth testing (e.g. a flu wave or a quiet week)."],
-            ["Fixed item characteristic", "Units used per arrival", "An item assumption; locked in the what-if."],
-            ["Fixed / observed (consistency check only)", "One-day arrival forecast; current arrivals", "Shown to check that the seven-day scenario is believable."],
-            ["Decision output", "Seven-day demand", "Feeds the order quantity; not an input."],
-        ], columns=["Type", "Predictors", "How to interpret"])
-    with st.expander("Which predictors can change?"):
-        st.dataframe(control_table, hide_index=True, width="stretch")
-    ratio_lo, ratio_hi = details.get("forecast_ratio_limits", list(MF.FORECAST_RATIO_LIMITS))
-    with st.expander("How input checks work"):
-        st.markdown(
-            "- **Plausible ranges:** each editable number is limited to values seen in the 2024 development data. "
-            "Closing stock uses **this item's own** range (for example, specimen cups never exceeded 700 units).\n"
-            "- **Locked fields:** values that already happened for the selected date (recent demand, current arrivals, "
-            "holiday) and fixed item characteristics cannot be edited.\n"
-            "- **Related variables stay consistent:** days of supply is recalculated when closing stock changes.\n"
-            f"- **Cross-check:** the seven-day arrival forecast must stay between {ratio_lo:.2f}× and {ratio_hi:.2f}× "
-            "seven times the one-day forecast (2024 values were always 0.83–1.25×). A scenario outside this band "
-            "is rejected with an explanation and **no prediction is shown**, rather than producing a number from an "
-            "impossible situation."
-        )
-
-    values = baseline_row[raw].iloc[0].to_dict()
-    context = baseline_row.iloc[0].to_dict()   # full row: fixed fields used for display and checks
-    observed_ranges = dict(details.get("input_ranges", {}))
-    observed_ranges.update(details.get("input_ranges_by_item", {}).get(model_item, {}))
-
-    def float_limits(feature: str) -> tuple[float, float]:
-        baseline = float(context[feature])
-        limits = observed_ranges.get(feature, {"min": 0.0, "max": max(1.0, baseline * 2)})
-        return min(float(limits["min"]), baseline), max(float(limits["max"]), baseline)
-
-    def int_limits(feature: str) -> tuple[int, int]:
-        low, high = float_limits(feature)
-        return int(np.floor(low)), int(np.ceil(high))
-
-    with st.form(f"what_if_{key}"):
-        c1, c2, c3 = st.columns(3)
+    with tab_acc:
+        st.subheader("How well it predicts (2025 test period, never used for training)")
         if probability:
-            with c1:
-                lo, hi = int_limits("closing_on_hand")
-                values["closing_on_hand"] = st.number_input(
-                    "Closing stock (planning input)", min_value=max(0, lo), max_value=hi,
-                    value=int(values["closing_on_hand"]), step=10,
-                    help=f"Limited to this item's 2024 range: {lo:,}–{hi:,} units.",
-                )
-                lo, hi = int_limits("lead_time_days")
-                values["lead_time_days"] = st.number_input(
-                    "Supplier lead time, days (planning input)", min_value=max(1, lo), max_value=hi,
-                    value=int(values["lead_time_days"]), step=1,
-                    help="Limited to lead times used by the project's suppliers (2–5 days).",
-                )
-                st.text_input("Days of supply (derived)", value="Recalculated from closing stock", disabled=True)
-            with c2:
-                lo, hi = float_limits("forecast_arrivals_7d")
-                values["forecast_arrivals_7d"] = st.number_input(
-                    "Seven-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
-                    value=float(values["forecast_arrivals_7d"]), step=25.0,
-                    help=f"Limited to the 2024 range: {lo:,.0f}–{hi:,.0f} patients.",
-                )
-                st.text_input("Previous-day demand (fixed)", value=fmt_value(values["demand_lag1"]), disabled=True)
-                st.text_input("Trailing seven-day demand (fixed)", value=fmt_value(values["demand_roll7"]), disabled=True)
-            with c3:
-                values["surge_flag"] = int(st.checkbox("Demand surge (external)", value=bool(values["surge_flag"])))
-                events = MF.SUPPLIER_EVENTS
-                current = str(values["supplier_event"])
-                values["supplier_event"] = st.selectbox("Supplier event (external)", events,
-                                                        index=events.index(current) if current in events else 0)
+            cols = st.columns(5)
+            cols[0].metric("ROC-AUC", f"{met['roc_auc']:.3f}", help="Chance that a random shortage case is ranked above a random non-shortage case.")
+            cols[1].metric("Average precision", f"{met['average_precision']:.3f}",
+                           help=f"Area under the precision-recall curve. A random ranking would score about {met['observed_rate']:.3f}.")
+            cols[2].metric("Shortages caught", f"{met['recall']:.0%}", help=f"Recall at the {threshold:.1%} screening threshold.")
+            cols[3].metric("Alerts that were real", f"{met['precision']:.1%}", help=f"Precision at the {threshold:.1%} screening threshold.")
+            cols[4].metric("Item-days flagged", f"{met['alert_share']:.1%}")
+            st.warning(
+                f"Shortages are rare: {met['positive_cases']} of {met['test_rows']:,} test item-days "
+                f"({met['observed_rate']:.2%}). At the {threshold:.1%} screening threshold (chosen on 2024 data), "
+                f"the model flags {met['alert_share']:.1%} of item-days and catches {met['recall']:.0%} of shortages, "
+                f"but most alerts are false alarms. Its average predicted probability ({met['mean_predicted_probability']:.1%}) "
+                f"is above the 2025 rate because shortages were more common in the 2024 training year. "
+                "Use it to rank items for review, not as an automatic ordering rule."
+            )
+            per10 = met["precision"] * 10
+            st.info(
+                f"**In plain terms:** the model flags about {met['alert_share']:.0%} of item-days. Roughly "
+                f"{per10:.0f} in 10 flagged items actually run short within a week, and it catches about "
+                f"{met['recall'] * 10:.0f} in 10 of the shortages that happen. A flag means *check this item*, not *order now*."
+            )
         else:
-            with c1:
-                lo, hi = float_limits("forecast_arrivals_7d")
-                values["forecast_arrivals_7d"] = st.number_input(
-                    "Seven-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
-                    value=float(values["forecast_arrivals_7d"]), step=25.0,
-                    help=f"Limited to the 2024 range: {lo:,.0f}–{hi:,.0f} patients.",
-                )
-            with c2:
-                st.text_input("One-day arrival forecast (fixed, for the cross-check)",
-                              value=fmt_value(context["forecast_arrivals_1d"]), disabled=True)
-                st.text_input("Current arrivals (fixed)", value=fmt_value(context["ed_arrivals"]), disabled=True)
-            with c3:
-                st.text_input("Units used per arrival (fixed item characteristic)",
-                              value=fmt_value(values["use_rate_per_arrival"]), disabled=True)
-        run = st.form_submit_button("Run model-based scenario", type="primary")
-
-    if not run:
-        st.caption("Run the scenario to see the side-by-side comparison, its contributions, and an automatic summary.")
-        return
-
-    # Keep related variables consistent: days of supply follows closing stock,
-    # using the selected row's recent average daily demand.
-    if probability:
-        stock_change = float(values["closing_on_hand"]) - float(baseline_row["closing_on_hand"].iloc[0])
-        values["days_of_supply"] = max(
-            0.0,
-            float(baseline_row["days_of_supply"].iloc[0]) + stock_change / max(float(values["demand_roll7"]), 1.0),
+            cols = st.columns(2)
+            cols[0].metric("Average miss (% of weekly demand)", f"{met['wape']:.1%}", help="WAPE: total absolute error ÷ total actual demand.")
+            cols[1].metric("Typical miss per item-week", f"{met['mae_units']:,.0f} units", help="MAE (mean absolute error).")
+            with st.expander("More accuracy measures"):
+                more = st.columns(2)
+                more[0].metric("Large-miss measure", f"{met['rmse_units']:,.0f} units", help="RMSE: weights large misses more heavily.")
+                more[1].metric("R²", f"{met['r2']:.3f}", help="High mainly because items differ greatly in scale.")
+            st.info(
+                f"**In plain terms:** over 2025, the weekly demand estimate was off by about {met['wape']:.1%} of what was "
+                f"actually used — roughly {met['mae_units']:,.0f} units per item per week. No learned model did better. "
+                "Because the synthetic data was generated from arrivals × use rate, this accuracy is optimistic; on real "
+                "hospital data the same method would need to be re-checked."
+            )
+        st.caption(
+            f"Training: {metadata['training_period'][0]} to {metadata['training_period'][1]} · "
+            f"Test: {metadata['test_period'][0]} to {metadata['test_period'][1]} · Split: chronological."
         )
-    invalid = []
-    ratio = MF.forecast_ratio(values["forecast_arrivals_7d"], context["forecast_arrivals_1d"])
-    if not ratio_lo <= ratio <= ratio_hi:
-        invalid.append(
-            f"The seven-day arrival forecast ({values['forecast_arrivals_7d']:,.0f}) is {ratio:.2f}× seven times "
-            f"tomorrow's forecast ({float(context['forecast_arrivals_1d']):,.0f} × 7 = "
-            f"{7 * float(context['forecast_arrivals_1d']):,.0f}). That is outside the plausible band "
-            f"({ratio_lo:.2f}–{ratio_hi:.2f}×), so the week would be inconsistent with tomorrow's forecast."
-        )
-    if invalid:
-        for message in invalid:
-            st.error(message)
-        st.info("No scenario prediction was produced, because a number from an inconsistent scenario would be "
-                "misleading. Adjust the inputs and run the scenario again.")
-        return
 
-    updated = pd.DataFrame([values])
-    updated_prediction = model_prediction(model, updated, details, probability)
-    delta = updated_prediction - baseline_prediction
+        st.markdown("**Where performance is weaker**")
+        seg_box = st.expander("Full error table by item and condition", expanded=False)
+        segments = error_analysis[error_analysis["kpi"] == ("Seven-day shortage" if probability else "Seven-day demand")].copy()
+        if probability:
+            item_segments = segments[segments["segment_type"] == "item"].sort_values(
+                ["recall", "false_positives"], ascending=[True, False]
+            )
+            display_cols = ["segment", "rows", "positives", "average_precision", "precision", "recall",
+                            "false_positives", "false_negatives"]
+            seg_box.dataframe(item_segments[display_cols].rename(columns={
+                "segment": "Item", "rows": "Rows", "positives": "Shortages",
+                "average_precision": "Average precision", "precision": "Precision", "recall": "Recall",
+                "false_positives": "False alerts", "false_negatives": "Missed shortages",
+            }), hide_index=True, width="stretch")
+            pos = item_segments[pd.to_numeric(item_segments["positives"], errors="coerce") > 0]
+            names = ", ".join(ITEM_NAME.get(i, i) for i in pos["segment"])
+            weakest = pos.sort_values("recall").iloc[0] if not pos.empty else None
+            st.warning(
+                f"Only {len(pos)} items ({names}) had shortages in the 2025 test period"
+                + (f"; the weakest recall is {ITEM_NAME.get(weakest['segment'], weakest['segment'])} "
+                   f"({float(weakest['recall']):.0%})" if weakest is not None else "")
+                + ". Items with no observed shortages still generate false alerts. Subgroup estimates are unstable "
+                "because the positive counts are very small. Treat the score as a review queue, not an order instruction."
+            )
+        else:
+            weak = segments.sort_values("wape", ascending=False).head(10).copy()
+            def segment_label(row: pd.Series) -> str:
+                if row["segment_type"] == "surge":
+                    return "Surge days" if str(row["segment"]) == "1" else "Normal days"
+                if row["segment_type"] == "item":
+                    return ITEM_NAME.get(row["segment"], row["segment"])
+                return f"{str(row['segment']).capitalize()} demand weeks"
+            weak["Segment"] = weak.apply(segment_label, axis=1)
+            weak["Average miss"] = pd.to_numeric(weak["wape"]).map("{:.1%}".format)
+            weak["Typical miss (units)"] = pd.to_numeric(weak["mae"]).round(0).astype(int)
+            weak["Average bias (units)"] = pd.to_numeric(weak["bias"]).map("{:+,.0f}".format)
+            seg_box.dataframe(weak[["segment_type", "Segment", "rows", "Average miss", "Typical miss (units)", "Average bias (units)"]]
+                         .rename(columns={"segment_type": "Segment type", "rows": "Item-weeks"}),
+                         hide_index=True, width="stretch")
+            seg_box.caption("Bias: negative = the estimate was too low (risk of running short); positive = too high.")
+            surge = segments[segments["segment_type"] == "surge"].set_index("segment")
+            band = segments[segments["segment_type"] == "demand band"].set_index("segment")
+            s_on = float(surge.loc["1", "wape"]) if "1" in surge.index else float("nan")
+            s_off = float(surge.loc["0", "wape"]) if "0" in surge.index else float("nan")
+            surge_bias = float(surge.loc["1", "bias"]) if "1" in surge.index else float("nan")
+            st.warning(
+                f"Errors are about {s_on / s_off:.0f}× larger during surge periods ({s_on:.1%} average miss vs. {s_off:.1%} "
+                f"otherwise), and during surges the estimate is {'too low' if surge_bias < 0 else 'too high'} by about "
+                f"{abs(surge_bias):,.0f} units per item-week on average, because the arrival forecast does not see a surge "
+                "coming. During a surge, hold extra safety stock and use the what-if to test a higher arrival forecast "
+                "rather than rely on the baseline estimate."
+            )
 
-    # ------------------------------------------------------------------
-    # 3e. Side-by-side comparison
-    # ------------------------------------------------------------------
-    st.markdown("**Side-by-side comparison**")
-    comparison_rows = []
-    for feature in raw:
-        before = baseline_row[feature].iloc[0]
-        after = updated[feature].iloc[0]
-        if fmt_value(before) != fmt_value(after):
-            comparison_rows.append({
-                "": PREDICTOR_LABELS.get(feature, readable(feature)),
-                "Baseline": fmt_value(before), "Scenario": fmt_value(after),
-                "Difference": (f"{float(after) - float(before):+,.2f}"
-                               if isinstance(before, (int, float, np.integer, np.floating)) else "Changed"),
+        st.divider()
+        st.subheader("Evaluation details")
+        st.caption("Expand a section for the full tables. The key results are summarized above.")
+        comp_box = st.expander("Baseline, original and revised comparison", expanded=False)
+        comparison = pd.DataFrame(details.get("original_vs_revised", []))
+        if not comparison.empty:
+            comparison = comparison.rename(columns={
+                "version": "Version", "model": "Method", "validation_wape": "Validation WAPE",
+                "test_wape": "Test WAPE", "test_mae_units": "Test MAE (units)",
+                "validation_average_precision": "Validation average precision",
+                "test_roc_auc": "Test ROC-AUC", "test_average_precision": "Test average precision",
+                "test_brier_score": "Test Brier score", "test_precision": "Test precision",
+                "test_recall": "Test recall", "retained": "Retained",
+                "direction_violation_share": "Rows where +10% patients lowers demand (validation)",
             })
-    comparison_rows.append({
-        "": "▶ Predicted " + ("shortage probability" if probability else "seven-day demand"),
-        "Baseline": fmt_pred(baseline_prediction), "Scenario": fmt_pred(updated_prediction),
-        "Difference": f"{delta * 100:+.1f} pts" if probability else f"{delta:+,.0f} units",
-    })
-    if probability:
-        comparison_rows.append({
-            "": "▶ Flagged for review?", "Baseline": "Yes" if baseline_prediction >= threshold else "No",
-            "Scenario": "Yes" if updated_prediction >= threshold else "No", "Difference": "",
-        })
-    st.dataframe(pd.DataFrame(comparison_rows), hide_index=True, width="stretch")
-    if len(comparison_rows) <= (2 if probability else 1):
-        st.caption("No inputs were changed, so the scenario repeats the baseline.")
-
-    contrib = reference_replacement_contributions(model, updated, details, probability)
-    st.markdown("**Contributions to the scenario prediction**")
-    st.plotly_chart(contribution_chart(contrib, probability), width="stretch", key=f"scen_contrib_{key}")
+            for col in ["Validation WAPE", "Test WAPE", "Rows where +10% patients lowers demand (validation)",
+                        "Test precision", "Test recall"]:
+                if col in comparison:
+                    comparison[col] = comparison[col].map(lambda v: f"{v:.1%}" if isinstance(v, (int, float)) else v)
+            comparison["Retained"] = comparison["Retained"].map({True: "✅ Retained", False: ""})
+            comp_box.dataframe(comparison, hide_index=True, width="stretch")
+            comp_box.caption("Validation = chosen on 2024 data only. Test = 2025, reported once after the choice was fixed.")
+        st.info(details.get("improvement_conclusion", ""))
 
     # ------------------------------------------------------------------
-    # 3f. Automatically generated summary
+    # Tab: Explanations (overall importance and one individual prediction)
     # ------------------------------------------------------------------
-    changed = [f"{r['']} changed from {r['Baseline']} to {r['Scenario']}" for r in comparison_rows
-               if not r[""].startswith("▶")]
-    input_text = "; ".join(changed) + "." if changed else "No inputs were changed, so this repeats the baseline."
-    if probability:
-        result_text = (f"The estimated seven-day shortage probability moved from {baseline_prediction:.1%} to "
-                       f"{updated_prediction:.1%} ({delta * 100:+.1f} percentage points).")
-        crossed = (baseline_prediction >= threshold) != (updated_prediction >= threshold)
-        if updated_prediction >= threshold:
-            implication = (f"This is at or above the {threshold:.1%} screening threshold"
-                           + (", so the scenario moves the item **onto** the review list" if crossed else ", so the item stays flagged")
-                           + ": check stock, open orders and the supplier before deciding whether to order early or escalate.")
+    with tab_exp:
+        st.info(
+            "Both models are trained on synthetic data. **Overall importance** describes what the model relies "
+            "on across the whole 2025 test period. **Individual contributions** explain one prediction for one "
+            "item on one date. Neither is evidence that a predictor causes the outcome.",
+            icon="ℹ️",
+        )
+        st.subheader("Overall predictor importance (whole test period)")
+        model_name = "Seven-day shortage" if probability else "Seven-day demand"
+        imp = importance[importance["model"] == model_name].copy()
+        imp["Predictor"] = imp["predictor"].map(lambda c: PREDICTOR_LABELS.get(c, readable(c)))
+        fig_imp = px.bar(
+            imp.sort_values("importance"), x="importance", y="Predictor", orientation="h", error_x="std",
+            labels={"importance": ("Drop in ROC-AUC when shuffled" if probability
+                                   else "Increase in average error (units) when shuffled"), "Predictor": ""},
+        )
+        fig_imp.update_layout(height=380, margin=dict(t=10, b=10))
+        st.plotly_chart(fig_imp, width="stretch")
+        if probability:
+            st.markdown(
+                "**What this means:** the model leans most on **closing stock** compared with recent demand: "
+                "low physical stock against a busy week is the clearest warning sign. **Recent demand** (yesterday "
+                "and the seven-day average) comes next, because a rising trend uses stock up faster. Surges, lead "
+                "time and the arrival forecast add smaller signals. **Days of supply** ranks low, not because "
+                "coverage is unimportant but because closing stock and recent demand already carry the same "
+                "information. Supplier events are rare, so they matter on the few days they happen."
+            )
         else:
-            implication = (f"This is below the {threshold:.1%} screening threshold"
-                           + (", so the scenario takes the item **off** the review list" if crossed else ", so the item is not flagged")
-                           + ". Routine review still applies.")
-        tradeoff = (
-            "Acting early (an extra order, a transfer or a supplier call) lowers the risk of running out, but costs "
-            "staff time, cash and shelf space, and most flags are false alarms: roughly "
-            f"{met['precision'] * 10:.0f} in 10 flagged items actually ran short in 2025. Not acting saves that effort "
-            f"but the model misses about {(1 - met['recall']) * 10:.0f} in 10 real shortages, so a low score is not a guarantee."
+            st.markdown(
+                "**What this means:** **units used per arrival** dominates because it sets each item's scale "
+                "(gloves vs. specimen cups); shuffling it between items creates huge errors. The **seven-day arrival "
+                "forecast** ranks lower only because it varies little from week to week (about ±15%). Within one item, "
+                "it drives the prediction one-for-one: 10% more expected patients means 10% more expected demand."
+            )
+        st.caption(
+            "Method: permutation importance. Each predictor is shuffled in turn across the 2025 test data and "
+            "the loss of accuracy is measured (bars show ± one standard deviation over 8 shuffles). It shows "
+            "what the model relies on overall. It does not show cause and effect."
         )
-    else:
-        pct = delta / baseline_prediction if baseline_prediction else 0.0
-        result_text = (f"Predicted seven-day demand moved from {baseline_prediction:,.0f} to {updated_prediction:,.0f} "
-                       f"units ({delta:+,.0f} units, {pct:+.1%}).")
-        implication = (("If this scenario happened, the week's stock target would need about "
-                        f"{abs(delta):,.0f} {'more' if delta > 0 else 'fewer'} units")
-                       if abs(delta) >= 1 else "The scenario does not materially change the week's stock need")
-        implication += "; the final order should still account for stock on hand, open orders, lead time and case packs."
-        tradeoff = (
-            "Ordering to the higher figure protects against running out if patient volume really rises, but ties up "
-            "cash and shelf space and risks expiry if it does not. Ordering to the lower figure saves money but leaves "
-            f"less buffer. The estimate typically misses by about {met['wape']:.0%} of a week's demand, and by more "
-            "during surges, so safety stock is still needed."
+
+        st.divider()
+        st.subheader("Individual prediction")
+        m1, m2 = st.columns(2)
+        m1.metric("Baseline model prediction", fmt_pred(baseline_prediction))
+        m2.metric("What actually happened (known in hindsight)",
+                  ("A shortage occurred" if actual == 1 else "No shortage") if probability else f"{actual:,.0f} units")
+        st.markdown(f"**Contributions to this baseline prediction** ({ITEM_NAME.get(model_item, model_item)}, {model_date:%Y-%m-%d})")
+        base_contrib = reference_replacement_contributions(model, baseline_row, details, probability)
+        st.plotly_chart(contribution_chart(base_contrib, probability), width="stretch", key=f"base_contrib_{key}")
+        st.markdown(contribution_sentence(base_contrib, probability))
+        st.caption(
+            "Method: each predictor in turn is set to its typical 2024 value (median, or most common for "
+            "supplier event) and the prediction is recomputed. The difference is that predictor's approximate "
+            "contribution to *this* prediction. Interactions mean the bars need not add up exactly. These are "
+            "model sensitivities, not causal effects."
         )
-    st.subheader("Automatically generated scenario summary")
-    st.success(
-        f"**Scenario inputs.** {input_text}\n\n"
-        f"**Comparison.** {result_text}\n\n"
-        f"**What drives it.** {contribution_sentence(contrib, probability)}\n\n"
-        f"**Implication.** {implication}\n\n"
-        f"**Trade-offs.** {tradeoff}\n\n"
-        "**Limitations.** This is a model-based scenario on synthetic data. The difference is what the model "
-        "predicts under these inputs, not a proven or guaranteed effect of changing them in the real world. "
-        "Inputs are kept within 2024 ranges and related fields are kept consistent, but a plausible scenario can "
-        "still differ from real operations. Not an automatic purchasing or clinical decision."
-    )
+
+    # ------------------------------------------------------------------
+    # Tab: Recommended actions
+    # ------------------------------------------------------------------
+    with tab_act:
+        rec_pool = model_data[model_data["item_id"].isin(selected_items)]
+        rec_pool = rec_pool[(rec_pool["date"].dt.date >= START) & (rec_pool["date"].dt.date <= END)]
+        if rec_pool.empty:
+            st.info("No model rows match the sidebar filters. Model rows end on 2025-12-24.", icon="🔎")
+        else:
+            rec_dates = sorted(rec_pool["date"].dt.date.unique())
+            rec_date = st.selectbox("Review date", rec_dates, index=len(rec_dates) - 1, key="rec_date",
+                                    format_func=lambda d: d.strftime("%Y-%m-%d"))
+            rows = rec_pool[rec_pool["date"].dt.date == rec_date]
+            stock = DAILY[DAILY["date"].dt.date == rec_date].set_index("item_id")
+            s_thr = float(metadata["shortage"].get("decision_threshold", 0.5))
+            recs = []
+            for _, r in rows.iterrows():
+                one = r.to_frame().T.reset_index(drop=True)
+                p_short = model_prediction(shortage_model, one[metadata["shortage"]["raw_predictors"]], metadata["shortage"], True)
+                demand7 = model_prediction(demand_model, one[metadata["demand"]["raw_predictors"]], metadata["demand"], False)
+                pos = float(stock.loc[r["item_id"], "inventory_position"])
+                pack = int(stock.loc[r["item_id"], "case_pack"])
+                gap = max(0.0, demand7 - pos)
+                order_units = int(np.ceil(gap / pack) * pack) if gap > 0 else 0
+                if p_short >= s_thr:
+                    action = "🔴 Review now: check stock and supplier; order or expedite if confirmed"
+                    rank = 0
+                elif order_units > 0:
+                    action = "🟠 Order this week: stock will not cover next week's demand"
+                    rank = 1
+                else:
+                    action = "🟢 No action needed: stock covers next week"
+                    rank = 2
+                recs.append({"rank": rank, "p": p_short, "Item": ITEM_NAME.get(r["item_id"], r["item_id"]),
+                             "Recommended action": action,
+                             "Shortage probability": f"{p_short:.1%}",
+                             "Expected use, next 7 days": f"{demand7:,.0f}",
+                             "Stock incl. open orders": f"{pos:,.0f}",
+                             "Suggested order (units)": f"{order_units:,}" + (f" ({order_units // pack} case{'s' if order_units // pack != 1 else ''})" if order_units else "")})
+            rec_df = pd.DataFrame(recs).sort_values(["rank", "p"], ascending=[True, False])
+            n_red, n_orange = int((rec_df["rank"] == 0).sum()), int((rec_df["rank"] == 1).sum())
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Review now", n_red)
+            c2.metric("Order this week", n_orange)
+            c3.metric("No action needed", len(rec_df) - n_red - n_orange)
+            needs = rec_df[rec_df["rank"] < 2]
+            if needs.empty:
+                st.markdown("**Needs attention on this date:** nothing. Stock covers next week for every item.")
+            else:
+                st.markdown("**Needs attention on this date**")
+                for _, nrow in needs.iterrows():
+                    extra = f" Suggested order: {nrow['Suggested order (units)']}." if nrow["rank"] == 1 else ""
+                    st.markdown(f"- **{nrow['Item']}**: {nrow['Recommended action']}.{extra}")
+            with st.expander("See all items", expanded=False):
+                st.dataframe(rec_df.drop(columns=["rank", "p"]), hide_index=True, width="stretch")
+            st.caption(
+                f"How these are made: **Review now** = shortage probability at or above the {s_thr:.1%} screening "
+                "threshold. **Order this week** = expected use over the next 7 days is more than stock on hand plus open "
+                "orders; the suggested order covers the gap, rounded up to whole case packs. These are model-based "
+                "suggestions for the manager to check, not automatic orders: about 1 in 10 review flags turned out to be "
+                "a real shortage in 2025, and the suggestion does not add safety stock or account for lead time."
+            )
+
+    # ------------------------------------------------------------------
+    # Tab: About the model (KPI definition, predictors, how it was chosen)
+    # ------------------------------------------------------------------
+    with tab_about:
+        st.subheader("KPI, predictors and model")
+        if probability:
+            st.markdown(
+                "**KPI 2 — seven-day shortage probability:** the estimated chance that this item has any "
+                "backorder during the next seven days.\n\n"
+                "**Why it matters:** the inventory manager cannot review every item every day. Ranking items by "
+                "shortage probability points attention, extra orders and supplier escalation where a stockout is "
+                "most likely, protecting service continuity for patients without over-ordering everything."
+            )
+        else:
+            st.markdown(
+                "**KPI 1 — seven-day item demand:** the predicted number of units of this item that will be "
+                "requested over the next seven days.\n\n"
+                "**Why it matters:** this is how much stock the manager needs to cover the coming week. "
+                "Under-estimating it leads to shortages and costly emergency purchases; over-estimating it ties "
+                "up money and shelf space and risks expiry. It feeds order quantity and timing decisions."
+            )
+        with st.expander("Predictors and why they are relevant", expanded=False):
+            reasons = PREDICTOR_REASONS[key]
+            st.table(pd.DataFrame({"Predictor": list(reasons), "Why it is relevant": list(reasons.values())}))
+        algorithm_note = (
+            "**Algorithm: calibrated logistic regression.** The outcome is yes/no and rare, so a model that "
+            "outputs a probability is the natural choice. Class weighting helps it learn from the few "
+            "shortage examples, and sigmoid calibration then rescales the output so a stated 3% means "
+            "roughly 3%. Logistic regression is also simple to explain to a non-technical manager."
+            if probability else
+            ("**Retained method: arrival-based formula** (seven-day arrival forecast × units used per patient). "
+             "Week 11 evaluation compared it with four learned models on 2024 data only. The learned gradient-boosting "
+             "models were no more accurate, and the Week 10 version predicted *lower* demand when more patients were "
+             "expected on most rows, which made its what-if results misleading. A constrained version fixed the direction "
+             "but was still less accurate. The formula is accurate, transparent and always moves in the right direction."
+             if details.get("retained_type") == "formula" else
+             "**Algorithm: gradient boosting regression.** Demand depends on combinations of factors (item "
+             "scale, recent use, calendar and surges) that do not add up in a straight line. Gradient boosting "
+             "captures these without a fixed formula, and Huber loss limits the pull of unusual surge days.")
+        )
+        st.markdown(algorithm_note)
+        with st.expander("How the model was chosen (candidates compared on 2024 data only)"):
+            sel = pd.DataFrame(details["selection"])
+            if probability:
+                sel = sel.rename(columns={"candidate": "Candidate", "validation_roc_auc": "Validation ROC-AUC",
+                                          "validation_average_precision": "Validation average precision"})
+            else:
+                sel = sel.drop(columns=["fold_wape"], errors="ignore").rename(
+                    columns={"candidate": "Candidate", "mean_validation_wape": "Mean validation WAPE (4 rolling folds)",
+                             "direction_violation_share": "Rows where +10% patients LOWERS demand"})
+                sel["Mean validation WAPE (4 rolling folds)"] = sel["Mean validation WAPE (4 rolling folds)"].map("{:.2%}".format)
+                if "Rows where +10% patients LOWERS demand" in sel:
+                    sel["Rows where +10% patients LOWERS demand"] = sel["Rows where +10% patients LOWERS demand"].map("{:.0%}".format)
+            st.dataframe(sel, hide_index=True, width="stretch")
+            st.caption(f"Rule: {details['selection_rule']}. Chosen: {details['algorithm']}.")
+        with st.expander("Data availability and leakage checks"):
+            st.markdown(
+                "The prediction is made **after the daily inventory close on day t**. The outcome covers days "
+                "t+1 through t+7. Therefore, only information known by the end of day t is permitted."
+            )
+            for check in metadata.get("leakage_checks", []):
+                st.markdown(f"- {check}")
+            st.caption(metadata.get("final_test_policy", ""))
+
+    # ------------------------------------------------------------------
+    # Tab: What-if (kept last: it ends the page function early with return)
+    # ------------------------------------------------------------------
+    with tab_what:
+        st.subheader("What-if scenario")
+        st.caption(
+            f"Baseline = the recorded values for {ITEM_NAME.get(model_item, model_item)} on {model_date:%Y-%m-%d} "
+            f"(prediction {fmt_pred(baseline_prediction)}). Change the permitted scenario inputs and run it. The result is a "
+            "model-based scenario, not a guaranteed effect of a real-world change."
+        )
+        if probability:
+            control_table = pd.DataFrame([
+                ["Planning inputs", "Closing stock; supplier lead time", "The manager can influence these through ordering, stock transfers or supplier choice, though not instantly."],
+                ["External conditions", "Seven-day arrival forecast; surge; supplier event", "Outside the manager's control, but worth testing as scenarios."],
+                ["Fixed / observed", "Recent demand; 28-day average arrivals", "Already happened for the selected date, so locked."],
+                ["Derived", "Days of supply", "Recalculated from closing stock; cannot be edited on its own."],
+            ], columns=["Type", "Predictors", "How to interpret"])
+        else:
+            control_table = pd.DataFrame([
+                ["External conditions", "Seven-day arrival forecast", "Outside the manager's control, but the main thing worth testing (e.g. a flu wave or a quiet week)."],
+                ["Fixed item characteristic", "Units used per arrival", "An item assumption; locked in the what-if."],
+                ["Fixed / observed (consistency check only)", "One-day arrival forecast; current arrivals", "Shown to check that the seven-day scenario is believable."],
+                ["Decision output", "Seven-day demand", "Feeds the order quantity; not an input."],
+            ], columns=["Type", "Predictors", "How to interpret"])
+        with st.expander("Which predictors can change?"):
+            st.dataframe(control_table, hide_index=True, width="stretch")
+        ratio_lo, ratio_hi = details.get("forecast_ratio_limits", list(MF.FORECAST_RATIO_LIMITS))
+        with st.expander("How input checks work"):
+            st.markdown(
+                "- **Plausible ranges:** each editable number is limited to values seen in the 2024 development data. "
+                "Closing stock uses **this item's own** range (for example, specimen cups never exceeded 700 units).\n"
+                "- **Locked fields:** values that already happened for the selected date (recent demand, current arrivals, "
+                "holiday) and fixed item characteristics cannot be edited.\n"
+                "- **Related variables stay consistent:** days of supply is recalculated when closing stock changes.\n"
+                f"- **Cross-check:** the seven-day arrival forecast must stay between {ratio_lo:.2f}× and {ratio_hi:.2f}× "
+                "seven times the one-day forecast (2024 values were always 0.83–1.25×). A scenario outside this band "
+                "is rejected with an explanation and **no prediction is shown**, rather than producing a number from an "
+                "impossible situation."
+            )
+
+        values = baseline_row[raw].iloc[0].to_dict()
+        context = baseline_row.iloc[0].to_dict()   # full row: fixed fields used for display and checks
+        observed_ranges = dict(details.get("input_ranges", {}))
+        observed_ranges.update(details.get("input_ranges_by_item", {}).get(model_item, {}))
+
+        def float_limits(feature: str) -> tuple[float, float]:
+            baseline = float(context[feature])
+            limits = observed_ranges.get(feature, {"min": 0.0, "max": max(1.0, baseline * 2)})
+            return min(float(limits["min"]), baseline), max(float(limits["max"]), baseline)
+
+        def int_limits(feature: str) -> tuple[int, int]:
+            low, high = float_limits(feature)
+            return int(np.floor(low)), int(np.ceil(high))
+
+        with st.form(f"what_if_{key}"):
+            c1, c2, c3 = st.columns(3)
+            if probability:
+                with c1:
+                    lo, hi = int_limits("closing_on_hand")
+                    values["closing_on_hand"] = st.number_input(
+                        "Closing stock (planning input)", min_value=max(0, lo), max_value=hi,
+                        value=int(values["closing_on_hand"]), step=10,
+                        help=f"Limited to this item's 2024 range: {lo:,}–{hi:,} units.",
+                    )
+                    lo, hi = int_limits("lead_time_days")
+                    values["lead_time_days"] = st.number_input(
+                        "Supplier lead time, days (planning input)", min_value=max(1, lo), max_value=hi,
+                        value=int(values["lead_time_days"]), step=1,
+                        help="Limited to lead times used by the project's suppliers (2–5 days).",
+                    )
+                    st.text_input("Days of supply (derived)", value="Recalculated from closing stock", disabled=True)
+                with c2:
+                    lo, hi = float_limits("forecast_arrivals_7d")
+                    values["forecast_arrivals_7d"] = st.number_input(
+                        "Seven-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
+                        value=float(values["forecast_arrivals_7d"]), step=25.0,
+                        help=f"Limited to the 2024 range: {lo:,.0f}–{hi:,.0f} patients.",
+                    )
+                    st.text_input("Previous-day demand (fixed)", value=fmt_value(values["demand_lag1"]), disabled=True)
+                    st.text_input("Trailing seven-day demand (fixed)", value=fmt_value(values["demand_roll7"]), disabled=True)
+                with c3:
+                    values["surge_flag"] = int(st.checkbox("Demand surge (external)", value=bool(values["surge_flag"])))
+                    events = MF.SUPPLIER_EVENTS
+                    current = str(values["supplier_event"])
+                    values["supplier_event"] = st.selectbox("Supplier event (external)", events,
+                                                            index=events.index(current) if current in events else 0)
+            else:
+                with c1:
+                    lo, hi = float_limits("forecast_arrivals_7d")
+                    values["forecast_arrivals_7d"] = st.number_input(
+                        "Seven-day arrival forecast (external)", min_value=max(0.0, lo), max_value=hi,
+                        value=float(values["forecast_arrivals_7d"]), step=25.0,
+                        help=f"Limited to the 2024 range: {lo:,.0f}–{hi:,.0f} patients.",
+                    )
+                with c2:
+                    st.text_input("One-day arrival forecast (fixed, for the cross-check)",
+                                  value=fmt_value(context["forecast_arrivals_1d"]), disabled=True)
+                    st.text_input("Current arrivals (fixed)", value=fmt_value(context["ed_arrivals"]), disabled=True)
+                with c3:
+                    st.text_input("Units used per arrival (fixed item characteristic)",
+                                  value=fmt_value(values["use_rate_per_arrival"]), disabled=True)
+            run = st.form_submit_button("Run model-based scenario", type="primary")
+
+        if not run:
+            st.caption("Run the scenario to see the side-by-side comparison, its contributions, and an automatic summary.")
+            return
+
+        # Keep related variables consistent: days of supply follows closing stock,
+        # using the selected row's recent average daily demand.
+        if probability:
+            stock_change = float(values["closing_on_hand"]) - float(baseline_row["closing_on_hand"].iloc[0])
+            values["days_of_supply"] = max(
+                0.0,
+                float(baseline_row["days_of_supply"].iloc[0]) + stock_change / max(float(values["demand_roll7"]), 1.0),
+            )
+        invalid = []
+        ratio = MF.forecast_ratio(values["forecast_arrivals_7d"], context["forecast_arrivals_1d"])
+        if not ratio_lo <= ratio <= ratio_hi:
+            invalid.append(
+                f"The seven-day arrival forecast ({values['forecast_arrivals_7d']:,.0f}) is {ratio:.2f}× seven times "
+                f"tomorrow's forecast ({float(context['forecast_arrivals_1d']):,.0f} × 7 = "
+                f"{7 * float(context['forecast_arrivals_1d']):,.0f}). That is outside the plausible band "
+                f"({ratio_lo:.2f}–{ratio_hi:.2f}×), so the week would be inconsistent with tomorrow's forecast."
+            )
+        if invalid:
+            for message in invalid:
+                st.error(message)
+            st.info("No scenario prediction was produced, because a number from an inconsistent scenario would be "
+                    "misleading. Adjust the inputs and run the scenario again.")
+            return
+
+        updated = pd.DataFrame([values])
+        updated_prediction = model_prediction(model, updated, details, probability)
+        delta = updated_prediction - baseline_prediction
+
+        # ------------------------------------------------------------------
+        # 3e. Side-by-side comparison
+        # ------------------------------------------------------------------
+        st.markdown("**Side-by-side comparison**")
+        comparison_rows = []
+        for feature in raw:
+            before = baseline_row[feature].iloc[0]
+            after = updated[feature].iloc[0]
+            if fmt_value(before) != fmt_value(after):
+                comparison_rows.append({
+                    "": PREDICTOR_LABELS.get(feature, readable(feature)),
+                    "Baseline": fmt_value(before), "Scenario": fmt_value(after),
+                    "Difference": (f"{float(after) - float(before):+,.2f}"
+                                   if isinstance(before, (int, float, np.integer, np.floating)) else "Changed"),
+                })
+        comparison_rows.append({
+            "": "▶ Predicted " + ("shortage probability" if probability else "seven-day demand"),
+            "Baseline": fmt_pred(baseline_prediction), "Scenario": fmt_pred(updated_prediction),
+            "Difference": f"{delta * 100:+.1f} pts" if probability else f"{delta:+,.0f} units",
+        })
+        if probability:
+            comparison_rows.append({
+                "": "▶ Flagged for review?", "Baseline": "Yes" if baseline_prediction >= threshold else "No",
+                "Scenario": "Yes" if updated_prediction >= threshold else "No", "Difference": "",
+            })
+        st.dataframe(pd.DataFrame(comparison_rows), hide_index=True, width="stretch")
+        if len(comparison_rows) <= (2 if probability else 1):
+            st.caption("No inputs were changed, so the scenario repeats the baseline.")
+
+        contrib = reference_replacement_contributions(model, updated, details, probability)
+        st.markdown("**Contributions to the scenario prediction**")
+        st.plotly_chart(contribution_chart(contrib, probability), width="stretch", key=f"scen_contrib_{key}")
+
+        # ------------------------------------------------------------------
+        # 3f. Automatically generated summary
+        # ------------------------------------------------------------------
+        changed = [f"{r['']} changed from {r['Baseline']} to {r['Scenario']}" for r in comparison_rows
+                   if not r[""].startswith("▶")]
+        input_text = "; ".join(changed) + "." if changed else "No inputs were changed, so this repeats the baseline."
+        if probability:
+            result_text = (f"The estimated seven-day shortage probability moved from {baseline_prediction:.1%} to "
+                           f"{updated_prediction:.1%} ({delta * 100:+.1f} percentage points).")
+            crossed = (baseline_prediction >= threshold) != (updated_prediction >= threshold)
+            if updated_prediction >= threshold:
+                implication = (f"This is at or above the {threshold:.1%} screening threshold"
+                               + (", so the scenario moves the item **onto** the review list" if crossed else ", so the item stays flagged")
+                               + ": check stock, open orders and the supplier before deciding whether to order early or escalate.")
+            else:
+                implication = (f"This is below the {threshold:.1%} screening threshold"
+                               + (", so the scenario takes the item **off** the review list" if crossed else ", so the item is not flagged")
+                               + ". Routine review still applies.")
+            tradeoff = (
+                "Acting early (an extra order, a transfer or a supplier call) lowers the risk of running out, but costs "
+                "staff time, cash and shelf space, and most flags are false alarms: roughly "
+                f"{met['precision'] * 10:.0f} in 10 flagged items actually ran short in 2025. Not acting saves that effort "
+                f"but the model misses about {(1 - met['recall']) * 10:.0f} in 10 real shortages, so a low score is not a guarantee."
+            )
+        else:
+            pct = delta / baseline_prediction if baseline_prediction else 0.0
+            result_text = (f"Predicted seven-day demand moved from {baseline_prediction:,.0f} to {updated_prediction:,.0f} "
+                           f"units ({delta:+,.0f} units, {pct:+.1%}).")
+            implication = (("If this scenario happened, the week's stock target would need about "
+                            f"{abs(delta):,.0f} {'more' if delta > 0 else 'fewer'} units")
+                           if abs(delta) >= 1 else "The scenario does not materially change the week's stock need")
+            implication += "; the final order should still account for stock on hand, open orders, lead time and case packs."
+            tradeoff = (
+                "Ordering to the higher figure protects against running out if patient volume really rises, but ties up "
+                "cash and shelf space and risks expiry if it does not. Ordering to the lower figure saves money but leaves "
+                f"less buffer. The estimate typically misses by about {met['wape']:.0%} of a week's demand, and by more "
+                "during surges, so safety stock is still needed."
+            )
+        st.subheader("Automatically generated scenario summary")
+        st.success(
+            f"**Scenario inputs.** {input_text}\n\n"
+            f"**Comparison.** {result_text}\n\n"
+            f"**What drives it.** {contribution_sentence(contrib, probability)}\n\n"
+            f"**Implication.** {implication}\n\n"
+            f"**Trade-offs.** {tradeoff}\n\n"
+            "**Limitations.** This is a model-based scenario on synthetic data. The difference is what the model "
+            "predicts under these inputs, not a proven or guaranteed effect of changing them in the real world. "
+            "Inputs are kept within 2024 ranges and related fields are kept consistent, but a plausible scenario can "
+            "still differ from real operations. Not an automatic purchasing or clinical decision."
+        )
 
 
 # ---------------------------------------------------------------------------
