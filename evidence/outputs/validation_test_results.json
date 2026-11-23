@@ -137,6 +137,14 @@
  },
  {
   "test_id": "TEST-15",
+  "case": "N1 same filter population on system_flow",
+  "expected": "731 days / 5848 rows",
+  "observed": "[731, 8, 8, 5848]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
   "case": "N1 same filter population on data",
   "expected": "731 days / 5848 rows",
   "observed": "[731, 8, 8, 5848]",
@@ -297,6 +305,14 @@
  },
  {
   "test_id": "TEST-15",
+  "case": "N2 same filter population on system_flow",
+  "expected": "31 days / 62 rows",
+  "observed": "[31, 2, 8, 62]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
   "case": "N2 same filter population on data",
   "expected": "31 days / 62 rows",
   "observed": "[31, 2, 8, 62]",
@@ -450,6 +466,14 @@
  {
   "test_id": "TEST-15",
   "case": "B1 same filter population on scenarios",
+  "expected": "1 days / 8 rows",
+  "observed": "[1, 8, 8, 8]",
+  "status": "PASS",
+  "note": ""
+ },
+ {
+  "test_id": "TEST-15",
+  "case": "B1 same filter population on system_flow",
   "expected": "1 days / 8 rows",
   "observed": "[1, 8, 8, 8]",
   "status": "PASS",
@@ -755,7 +779,7 @@
   "test_id": "TEST-25",
   "case": "Predictive page for dates after 2025-12-24 (no model rows): explains why nothing is shown",
   "expected": "no-model-rows message",
-  "observed": "['No model rows match the sidebar filters. Model rows end on 2025-12-24.']",
+  "observed": "['No model rows match the current sidebar filters. Model rows end on 2025-12-24, because eac']",
   "status": "PASS",
   "note": ""
  },

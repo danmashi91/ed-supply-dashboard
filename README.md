@@ -70,7 +70,8 @@ The app reads the generated CSV and model files without modifying them. The comm
 3. **Trends & Mix** — monthly demand, order spend, high-risk days, arrival mix, and an item summary.
 4. **Scenario Comparison** — pre-generated low, base, and high demand scenarios.
 5. **Predictive Models** — KPI definitions, leakage checks, baseline/original/revised comparisons, error segments, overall importance, individual contributions, constrained what-if inputs, side-by-side comparisons, and an automatic summary.
-6. **Data & Assumptions** — item assumptions, validation results, data notes, and filtered-data download.
+6. **System Flow** — a data-lineage diagram, code call graph, and quality-control map showing how information moves from the synthetic sources to the manager-facing dashboard.
+7. **Data & Assumptions** — item assumptions, validation results, data notes, and filtered-data download.
 
 ## Retained KPIs and final validated models
 

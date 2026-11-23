@@ -12,7 +12,8 @@ from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[2]
 PAGES = {"overview": "page_overview", "item_explorer": "page_item_explorer", "trends": "page_trends",
-         "scenarios": "page_scenarios", "predictive": "page_predictive_models", "data": "page_data"}
+         "scenarios": "page_scenarios", "predictive": "page_predictive_models",
+         "system_flow": "page_system_flow", "data": "page_data"}
 
 
 def open_page(page: str, timeout: int = 120) -> AppTest:

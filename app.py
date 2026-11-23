@@ -1422,74 +1422,215 @@ def page_predictive_models() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Page 6 — Data & Assumptions
+# Page 6 — System Flow
+# ---------------------------------------------------------------------------
+def page_system_flow() -> None:
+    """Explain, in decision-maker language, how data and code move end to end."""
+    st.title("System Flow")
+    st.caption("Where does the data come from, how is it transformed, and where is it used?")
+
+    st.info(
+        "This page is an audit map. It does not calculate a new prediction; it shows the path from "
+        "synthetic source data to the information displayed to the inventory manager."
+    )
+
+    tab_lineage, tab_calls, tab_controls = st.tabs(
+        ["Data lineage", "Code call graph", "Quality controls"]
+    )
+
+    with tab_lineage:
+        labels = [
+            "Synthetic ED arrivals", "Item assumptions", "Item-day simulation",
+            "Final decision table", "Model features", "Model evaluation",
+            "Saved predictions & models", "Streamlit dashboard", "Manager review",
+        ]
+        sources = [0, 1, 2, 3, 3, 4, 5, 6, 6, 7]
+        targets = [2, 2, 3, 4, 7, 5, 6, 7, 7, 8]
+        values = [1] * len(sources)
+        flow = go.Figure(go.Sankey(
+            arrangement="snap",
+            node={
+                "label": labels,
+                "pad": 18,
+                "thickness": 18,
+                "color": ["#6BAED6", "#9ECAE1", "#74C476", "#31A354", "#FD8D3C",
+                          "#F16913", "#756BB1", "#3182BD", "#2CA25F"],
+            },
+            link={"source": sources, "target": targets, "value": values,
+                  "color": "rgba(90, 110, 130, 0.28)"},
+        ))
+        flow.update_layout(height=500, margin=dict(l=10, r=10, t=25, b=10))
+        st.plotly_chart(flow, width="stretch", config={"displayModeBar": False})
+        st.caption(
+            "Conceptual lineage: line width represents a pipeline connection, not record volume. "
+            "The dashboard reads saved outputs; it does not retrain models or modify source data."
+        )
+
+        lineage = pd.DataFrame([
+            ["1. Source", "data/raw/generated_ed_arrivals.csv", "Daily synthetic patient volume, calendar and surge flags"],
+            ["1. Source", "data/raw/item_assumptions.csv", "Eight illustrative consumables, use rates, lead times and costs"],
+            ["2. Transform", "code/generate_and_validate.py", "Simulates item-day operations and performs 13 data checks"],
+            ["3. Decision data", "data/final/inventory_decision_daily.csv", "One row per item-day for monitoring and ordering review"],
+            ["4. Features", "code/model_features.py", "Creates leakage-safe coverage, trend and arrival predictors"],
+            ["5. Evaluate", "code/train_predictive_models.py", "Uses 2024 for development and 2025 once for final evaluation"],
+            ["6. Outputs", "models/ and data/modeling/", "Stores model, metadata, importance, errors and evaluation predictions"],
+            ["7. Present", "app.py", "Reads validated outputs and presents KPIs, scenarios and recommendations"],
+        ], columns=["Stage", "File or component", "What passes to the next stage"])
+        st.dataframe(lineage, hide_index=True, width="stretch")
+
+    with tab_calls:
+        st.markdown(
+            "A **call graph** shows which function invokes the next function. The table below is the "
+            "plain-language call graph for the reproducible pipeline."
+        )
+        calls = pd.DataFrame([
+            ["generate_and_validate.main()", "generate_arrivals()", "Seed and simulation settings", "Daily arrival records"],
+            ["generate_and_validate.main()", "simulate_inventory()", "Arrivals + item assumptions", "Item-day operations"],
+            ["generate_and_validate.main()", "run_validations()", "Generated tables", "PASS/FAIL validation evidence"],
+            ["train_predictive_models.main()", "build_model_dataset()", "Final item-day table", "Predictors and 7-day targets"],
+            ["build_model_dataset()", "add_model_features()", "Historical values available at day t", "Coverage and trend features"],
+            ["train_predictive_models.main()", "demand_candidates()", "2024 development rows", "Demand model comparisons"],
+            ["train_predictive_models.main()", "shortage_candidates()", "2024 development rows", "Shortage model comparisons"],
+            ["train_predictive_models.main()", "metric functions", "2025 held-out predictions", "Performance and error outputs"],
+            ["app.py", "load_all() / load_models()", "Saved CSV, metadata and model files", "Read-only dashboard state"],
+            ["st.navigation(...).run()", "Selected page function", "Filtered dashboard state", "Decision-support display"],
+        ], columns=["Caller", "Called component", "Information received", "Information returned"])
+        st.dataframe(calls, hide_index=True, width="stretch")
+        st.code(
+            "generate_and_validate.main()\n"
+            "  -> generate synthetic sources\n"
+            "  -> simulate item-day operations\n"
+            "  -> validate and save final tables\n\n"
+            "train_predictive_models.main()\n"
+            "  -> build_model_dataset()\n"
+            "     -> add_model_features()\n"
+            "  -> compare and retain models\n"
+            "  -> evaluate on the 2025 holdout\n"
+            "  -> save models, predictions and metadata\n\n"
+            "app.py\n"
+            "  -> load_all() + load_models()\n"
+            "  -> calculate filtered decision views\n"
+            "  -> display the selected Streamlit page",
+            language="text",
+        )
+
+    with tab_controls:
+        controls = pd.DataFrame([
+            ["Reproducibility", "Fixed generator seed 20261009", "The same inputs reproduce the submitted data"],
+            ["Data integrity", "13 schema, range, uniqueness and logic checks", "Invalid tables are identified before modeling"],
+            ["Temporal leakage", "Lagged predictors use shift(1); targets use t+1 to t+7", "Future outcomes do not enter predictors"],
+            ["Model selection", "Candidate choice uses 2024 only", "The 2025 test period does not select the model"],
+            ["Final evaluation", "2025 test period used once", "Reported performance remains an honest holdout estimate"],
+            ["Application safety", "Read-only files, constrained inputs and invalid-scenario blocking", "The app cannot silently overwrite data or run implausible scenarios"],
+            ["Decision boundary", "Recommendations require managerial review", "Predictions do not become automatic purchase orders"],
+        ], columns=["Control", "Implementation", "Why it matters"])
+        st.dataframe(controls, hide_index=True, width="stretch")
+        st.warning(
+            "The lineage is reproducible and internally validated, but it still represents a synthetic "
+            "single-ED prototype. The system demonstrates a credible decision process; it does not claim "
+            "that the simulated figures are a real hospital's operating results."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Page 7 — Data & Assumptions
 # ---------------------------------------------------------------------------
 def page_data() -> None:
     st.title("Data & Assumptions")
-    st.caption("Can I trust this?")
+    st.caption("Is the dataset fit for this classroom decision-support purpose?")
 
-    st.subheader("Item assumptions")
-    st.dataframe(ITEMS.rename(columns=readable), hide_index=True, width="stretch")
-
-    st.subheader("Validation results")
     n_pass = int((VALIDATION["status"].str.upper() == "PASS").sum())
     n_fail = int((VALIDATION["status"].str.upper() == "FAIL").sum())
     n_total = len(VALIDATION)
-    m = st.columns(3)
-    m[0].metric("PASS", f"{n_pass} of {n_total}")
-    m[1].metric("FAIL", f"{n_fail}")
-    m[2].metric("Checks", f"{n_total}")
+    m = st.columns(4)
+    m[0].metric("Coverage", f"{ARRIVALS['date'].nunique():,} days")
+    m[1].metric("Items", f"{ITEMS['item_id'].nunique()}")
+    m[2].metric("Item-day rows", f"{len(DAILY):,}")
+    m[3].metric("Data checks passed", f"{n_pass} of {n_total}")
     if n_pass == n_total:
-        st.success(f"{n_pass} of {n_total} validation checks PASS.")
+        st.success(
+            "Fit for purpose: the submitted synthetic data is reproducible, internally consistent, "
+            "free of patient records, and suitable for demonstrating the ED inventory decision workflow."
+        )
     else:
         st.error(f"Only {n_pass} of {n_total} validation checks PASS. Review the FAIL rows below.")
-    st.dataframe(VALIDATION.rename(columns=readable), hide_index=True, width="stretch")
 
-    st.subheader("About the data")
-    st.markdown(
-        f"""
-**Source.** All data is **synthetic**: generated by a script with a fixed random seed (20261009),
-not taken from real hospital records. Item assumptions are manually constructed and illustrative.
+    tab_inventory, tab_assumptions, tab_validation, tab_export = st.tabs(
+        ["Data inventory", "Simulation assumptions", "Validation evidence", "Export"]
+    )
+
+    with tab_inventory:
+        st.markdown(
+            f"""
+**Source.** All observations are **synthetic** and were generated with fixed random seed `20261009`.
+No patient-level, confidential, or real hospital records are included. Item assumptions are manually
+constructed and illustrative.
 
 **Coverage.** {DATA_MIN:%Y-%m-%d} to {DATA_MAX:%Y-%m-%d}
-({ARRIVALS['date'].nunique():,} days), {ITEMS['item_id'].nunique()} routine ED consumables.
+({ARRIVALS['date'].nunique():,} calendar days) for {ITEMS['item_id'].nunique()} routine ED consumables.
 
-**Row counts.**
-- `generated_ed_arrivals.csv`: {len(ARRIVALS):,} rows
-- `item_assumptions.csv`: {len(ITEMS):,} rows
-- `inventory_decision_daily.csv`: {len(DAILY):,} rows × {DAILY.shape[1]} columns
-- `scenario_comparison.csv`: {len(SCENARIO):,} rows
-- `validation_results.csv`: {len(VALIDATION):,} rows
-
-**v1.1 simulation assumptions.**
-- Arrival surges: multi-day demand surge episodes and one-day spikes (`surge_flag` = 1).
-- Ordering on review days, Monday and Thursday, or on any day the risk score is ≥ 0.50.
-- Supplier disruptions: each order has an 8% chance of arriving 2–6 days late and a 5% chance of
-  being short-shipped (30–70% of the units ordered).
-
-**Predictive extension.** Version 3 evaluates a seven-day demand estimate and a seven-day shortage model on a
-chronological 2025 holdout period. For demand, the arrival-based formula was retained because no learned model
-beat it on 2024 validation data. Both are intended for demonstration and decision screening only.
-
-**Limitations.** {FOOTER_TEXT}
+| Dataset | Grain | Rows | Purpose |
+|---|---|---:|---|
+| `generated_ed_arrivals.csv` | One date | {len(ARRIVALS):,} | Patient-volume context and arrival forecasting |
+| `item_assumptions.csv` | One item | {len(ITEMS):,} | Use rate, lead time, cost and ordering assumptions |
+| `inventory_decision_daily.csv` | One item-day | {len(DAILY):,} | Main monitoring and replenishment table |
+| `scenario_comparison.csv` | One item-day-scenario | {len(SCENARIO):,} | Low, base and high planning comparisons |
+| `validation_results.csv` | One check | {len(VALIDATION):,} | Data-quality evidence |
 """
-    )
+        )
+        st.subheader("Item assumptions")
+        st.dataframe(ITEMS.rename(columns=readable), hide_index=True, width="stretch")
 
-    st.subheader("Download")
-    export = DAILY_F.drop(columns=["item_name", "category"]).copy()
-    export.insert(2, "item_name", DAILY_F["item_name"])
-    export.insert(3, "category", DAILY_F["category"])
-    export["date"] = export["date"].dt.strftime("%Y-%m-%d")
-    st.download_button(
-        "Download filtered daily table (CSV)",
-        data=export.to_csv(index=False).encode("utf-8"),
-        file_name=f"inventory_decision_daily_{START:%Y%m%d}_{END:%Y%m%d}.csv",
-        mime="text/csv",
-        disabled=export.empty,
-        help="Rows of inventory_decision_daily.csv matching the sidebar date and item filters, "
-             "with item name and category added.",
-    )
-    st.caption(f"{len(export):,} rows match the current filters.")
+    with tab_assumptions:
+        st.markdown(
+            """
+**How the simulation creates useful decision variation**
+
+- **Arrival patterns:** ordinary weekdays, weekends, holidays, multi-day surges and one-day spikes.
+- **Usage:** each item's requested quantity responds to patient arrivals and its illustrative use rate.
+- **Inventory review:** orders can be placed on Monday and Thursday review days or when the descriptive
+  risk proxy reaches 0.50.
+- **Supplier uncertainty:** each order has an 8% chance of arriving 2–6 days late and a 5% chance of
+  being short-shipped by 30–70%.
+- **Reproducibility:** the fixed seed recreates the same submitted dataset and results.
+
+**Why synthetic data is appropriate here.** The purpose is to demonstrate and validate an analytics
+workflow without exposing protected hospital information. The manager should trust the documented logic,
+traceability and scenario behaviour—not interpret the simulated totals as their hospital's actual history.
+"""
+        )
+        st.warning(
+            "Boundary: the prototype represents eight supplies in one simulated ED. It does not include "
+            "expiry dates, safety-stock policy, storage limits, open-order timing or a hospital's negotiated costs."
+        )
+
+    with tab_validation:
+        v = st.columns(3)
+        v[0].metric("PASS", f"{n_pass} of {n_total}")
+        v[1].metric("FAIL", f"{n_fail}")
+        v[2].metric("Checks", f"{n_total}")
+        st.dataframe(VALIDATION.rename(columns=readable), hide_index=True, width="stretch")
+        st.markdown(
+            "The predictive extension uses **2024 for development and model selection** and a chronological "
+            "**2025 holdout for final evaluation**. Lagged predictors use prior information only. See "
+            "**System Flow → Quality controls** for the complete audit map."
+        )
+
+    with tab_export:
+        export = DAILY_F.drop(columns=["item_name", "category"]).copy()
+        export.insert(2, "item_name", DAILY_F["item_name"])
+        export.insert(3, "category", DAILY_F["category"])
+        export["date"] = export["date"].dt.strftime("%Y-%m-%d")
+        st.download_button(
+            "Download filtered daily table (CSV)",
+            data=export.to_csv(index=False).encode("utf-8"),
+            file_name=f"inventory_decision_daily_{START:%Y%m%d}_{END:%Y%m%d}.csv",
+            mime="text/csv",
+            disabled=export.empty,
+            help="Rows of inventory_decision_daily.csv matching the sidebar date and item filters, "
+                 "with item name and category added.",
+        )
+        st.caption(f"{len(export):,} rows match the current filters.")
 
 
 # ---------------------------------------------------------------------------
@@ -1501,6 +1642,7 @@ pages = [
     st.Page(page_trends, title="Trends & Mix", icon="📈", url_path="trends"),
     st.Page(page_scenarios, title="Scenario Comparison", icon="⚖️", url_path="scenarios"),
     st.Page(page_predictive_models, title="Predictive Models", icon="🤖", url_path="predictive-models"),
+    st.Page(page_system_flow, title="System Flow", icon="🔄", url_path="system-flow"),
     st.Page(page_data, title="Data & Assumptions", icon="🗂️", url_path="data"),
 ]
 st.navigation(pages).run()

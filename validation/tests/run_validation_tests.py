@@ -106,7 +106,7 @@ for cid, label, d0, d1, ids, thr in CASES:
         cap is not None and cap[0] == n_days and cap[1] == len(ids) and cap[3] == n_rows)
     close(at)
     if cid in ("N1", "N2", "B1"):
-        for page in ("item_explorer", "trends", "scenarios", "data", "predictive"):
+        for page in ("item_explorer", "trends", "scenarios", "system_flow", "data", "predictive"):
             at = open_page(page); apply_filters(at, d0, d1, ids, thr)
             cap = sidebar_caption(at)
             ok = cap is not None and cap[0] == n_days and cap[3] == n_rows
